@@ -1,5 +1,12 @@
 {
   "dependencies": {
+    "com.qq.weixin.minigame": {
+      "version": "https://gitee.com/wechat-minigame/minigame-tuanjie-transform-sdk.git",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "207766f6db6dfad12cb8a5b6ce5c0da0520a7f97"
+    },
     "com.unity.burst": {
       "version": "1.8.19",
       "depth": 1,
