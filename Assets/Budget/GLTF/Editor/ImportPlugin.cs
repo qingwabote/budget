@@ -116,10 +116,17 @@ namespace Budget.GLTF
         {
             nodeObject.AddComponent<NameAuthoring>();
 
-            var meshRenderer = nodeObject.GetComponent<MeshRenderer>();
-            if (meshRenderer)
+            var renderer = nodeObject.GetComponent<Renderer>();
+            if (renderer)
             {
-                nodeObject.AddComponent<MeshRendererAuthoring>();
+                if (renderer is MeshRenderer)
+                {
+                    nodeObject.AddComponent<MeshRendererAuthoring>();
+                }
+                else if (renderer is SkinnedMeshRenderer)
+                {
+                    nodeObject.AddComponent<SkinnedMeshRendererAuthoring>();
+                }
             }
         }
 
@@ -130,7 +137,7 @@ namespace Budget.GLTF
                 for (int i = 0; i < _context.Root.Animations.Count; i++)
                 {
                     var animationClip = CreateAnimationClip(_context.SceneImporter, i, sceneObject);
-                    _context.AssetContext.AddObjectToAsset($"Pauper_{animationClip.name}", animationClip);
+                    _context.AssetContext.AddObjectToAsset($"Budget_{animationClip.name}", animationClip);
                 }
 
             }
