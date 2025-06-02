@@ -1,3 +1,4 @@
+using System;
 using Unity.Entities;
 using UnityEngine;
 
@@ -15,14 +16,7 @@ namespace Budget.GLTF
         public int Outputs;
     }
 
-
-    public class AnimationMaking : IComponentData
-    {
-        public AnimationClip[] Clips;
-        public int Index;
-    }
-
-    struct AnimationState : IComponentData
+    struct Animation : IComponentData
     {
         public int Index;
         public float Time;
@@ -52,9 +46,60 @@ namespace Budget.GLTF
             }
 
             var entity = GetEntity(TransformUsageFlags.Dynamic);
-            AddComponentObject(entity, new AnimationMaking
+            var channelTargets = AddBuffer<ChannelTarget>(entity);
+            var clipBindings = AddBuffer<ClipBinging>(entity);
+            foreach (var clip in authoring.Clips)
             {
-                Clips = authoring.Clips,
+                foreach (var node in clip.Nodes)
+                {
+                    int outputs = 0;
+                    ref BlobArray<Channel> channels = ref clip.Blob.Value.channels;
+                    for (int i = 0; i < channels.Length; i++)
+                    {
+                        switch (channels[i].path)
+                        {
+                            case ChannelPath.TRANSLATION:
+                                outputs += 3;
+                                break;
+                            case ChannelPath.ROTATION:
+                                outputs += 4;
+                                break;
+                            case ChannelPath.SCALE:
+                                outputs += 3;
+                                break;
+                            default:
+                                throw new Exception($"unsupported path: {channels[i].path}");
+                        }
+                    }
+                    clipBindings.Add(new ClipBinging
+                    {
+                        Blob = clip.Blob,
+                        TargetIndex = channelTargets.Length,
+                        Outputs = outputs
+                    });
+
+                    var target = authoring.transform;
+                    foreach (var name in node.Split("/"))
+                    {
+                        for (int i = 0; i < target.childCount; i++)
+                        {
+                            var child = target.GetChild(i);
+                            if (child.name == name)
+                            {
+                                target = child;
+                                break;
+                            }
+                        }
+                    }
+                    channelTargets.Add(new ChannelTarget
+                    {
+                        Value = GetEntity(target, TransformUsageFlags.Dynamic)
+                    });
+                }
+            }
+
+            AddComponent(entity, new Animation
+            {
                 Index = authoring.Index
             });
         }

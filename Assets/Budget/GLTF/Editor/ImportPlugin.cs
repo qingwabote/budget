@@ -119,11 +119,11 @@ namespace Budget.GLTF
             var renderer = nodeObject.GetComponent<Renderer>();
             if (renderer)
             {
-                if (renderer is MeshRenderer)
+                if (renderer is UnityEngine.MeshRenderer)
                 {
                     nodeObject.AddComponent<MeshRendererAuthoring>();
                 }
-                else if (renderer is SkinnedMeshRenderer)
+                else if (renderer is UnityEngine.SkinnedMeshRenderer)
                 {
                     nodeObject.AddComponent<SkinnedMeshRendererAuthoring>();
                 }

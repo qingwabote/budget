@@ -1,96 +1,14 @@
 using System;
-using System.Collections.Generic;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
-using UnityEngine;
 
 namespace Budget.GLTF
 {
-    public partial struct AnimationMakingSystem : ISystem
-    {
-        public void OnUpdate(ref SystemState state)
-        {
-            var ecb = new EntityCommandBuffer(Allocator.Temp);
-            foreach (var (animation, entity) in SystemAPI.Query<AnimationMaking>().WithEntityAccess())
-            {
-                var channelTargets = ecb.AddBuffer<ChannelTarget>(entity);
-                var clipBindings = ecb.AddBuffer<ClipBinging>(entity);
-                int index = 0;
-                foreach (var animationClip in animation.Clips)
-                {
-                    foreach (var node in animationClip.Nodes)
-                    {
-                        var target = entity;
-                        foreach (var name in node.Split("/"))
-                        {
-                            if (target == Entity.Null)
-                            {
-                                break;
-                            }
-
-                            var children = SystemAPI.GetBuffer<Child>(target);
-                            target = Entity.Null;
-                            foreach (var child in children)
-                            {
-                                if (SystemAPI.ManagedAPI.GetComponent<Name>(child.Value).Value == name)
-                                {
-                                    target = child.Value;
-                                    break;
-                                }
-                            }
-                        }
-                        channelTargets.Add(new ChannelTarget
-                        {
-                            Value = target
-                        });
-                    }
-
-                    int outputs = 0;
-                    ref BlobArray<Channel> channels = ref animationClip.Blob.Value.channels;
-                    for (int i = 0; i < channels.Length; i++)
-                    {
-                        switch (channels[i].path)
-                        {
-                            case ChannelPath.TRANSLATION:
-                                outputs += 3;
-                                break;
-                            case ChannelPath.ROTATION:
-                                outputs += 4;
-                                break;
-                            case ChannelPath.SCALE:
-                                outputs += 3;
-                                break;
-                            default:
-                                throw new Exception($"unsupported path: {channels[i].path}");
-                        }
-                    }
-
-                    clipBindings.Add(new ClipBinging
-                    {
-                        Blob = animationClip.Blob,
-                        TargetIndex = index,
-                        Outputs = outputs
-                    });
-
-                    index += animation.Clips.Length;
-                }
-                ecb.AddComponent(entity, new AnimationState
-                {
-                    Index = animation.Index
-                });
-                ecb.RemoveComponent<AnimationMaking>(entity);
-            }
-            ecb.Playback(state.EntityManager);
-            ecb.Dispose();
-        }
-    }
-
-    [UpdateAfter(typeof(AnimationMakingSystem))]
-    partial struct AnimationStateSystem : ISystem
+    partial struct AnimationSystem : ISystem
     {
         private int _ProfileEntry;
 
@@ -104,7 +22,7 @@ namespace Budget.GLTF
         {
             Profile.Begin(_ProfileEntry);
 
-            foreach (var (animation, clipBingings, channelTargets, entity) in SystemAPI.Query<RefRW<AnimationState>, DynamicBuffer<ClipBinging>, DynamicBuffer<ChannelTarget>>().WithEntityAccess())
+            foreach (var (animation, clipBingings, channelTargets, entity) in SystemAPI.Query<RefRW<Animation>, DynamicBuffer<ClipBinging>, DynamicBuffer<ChannelTarget>>().WithEntityAccess())
             {
                 var time = animation.ValueRW.Time;
 
