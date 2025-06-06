@@ -1,5 +1,6 @@
 using System;
 using Unity.Entities;
+using Unity.Mathematics;
 using UnityEngine;
 
 namespace Budget.GLTF
@@ -14,18 +15,33 @@ namespace Budget.GLTF
         public BlobAssetReference<Clip> Blob;
         public int TargetIndex;
         public int Outputs;
-    }
 
-    struct Animation : IComponentData
-    {
-        public int Index;
-        public float Time;
+        public float Duration
+        {
+            get
+            {
+                float duration = 0;
+                ref var channels = ref Blob.Value.channels;
+                for (int i = 0; i < channels.Length; i++)
+                {
+                    ref var channel = ref channels[i];
+                    duration = math.max(duration, channel.input[^1]);
+                }
+                return duration;
+            }
+        }
     }
 
     class AnimationAuthoring : MonoBehaviour
     {
         public AnimationClip[] Clips;
-        public int Index;
+        public int ClipIndex;
+    }
+
+    public struct AnimationState : IComponentData
+    {
+        public int ClipIndex;
+        public float Time;
     }
 
     class AnimationBaker : Baker<AnimationAuthoring>
@@ -98,9 +114,9 @@ namespace Budget.GLTF
                 }
             }
 
-            AddComponent(entity, new Animation
+            AddComponent(entity, new AnimationState
             {
-                Index = authoring.Index
+                ClipIndex = authoring.ClipIndex
             });
         }
     }

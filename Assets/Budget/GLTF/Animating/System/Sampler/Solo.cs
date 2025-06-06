@@ -8,13 +8,14 @@ using Unity.Transforms;
 
 namespace Budget.GLTF
 {
-    partial struct AnimationSystem : ISystem
+    [UpdateBefore(typeof(AnimationTimeStepper))]
+    partial struct Solo : ISystem
     {
         private int _ProfileEntry;
 
         public void OnCreate(ref SystemState state)
         {
-            _ProfileEntry = Profile.DefineEntry("Animation");
+            _ProfileEntry = Profile.DefineEntry("Solo");
         }
 
         [BurstCompile]
@@ -22,19 +23,16 @@ namespace Budget.GLTF
         {
             Profile.Begin(_ProfileEntry);
 
-            foreach (var (animation, clipBingings, channelTargets, entity) in SystemAPI.Query<RefRW<Animation>, DynamicBuffer<ClipBinging>, DynamicBuffer<ChannelTarget>>().WithEntityAccess())
+            foreach (var (animation, clipBingings, channelTargets, entity) in SystemAPI.Query<RefRO<AnimationState>, DynamicBuffer<ClipBinging>, DynamicBuffer<ChannelTarget>>().WithEntityAccess())
             {
-                var time = animation.ValueRW.Time;
-
-                ref var clipBinging = ref clipBingings.ElementAt(animation.ValueRO.Index);
+                ref var clipBinging = ref clipBingings.ElementAt(animation.ValueRO.ClipIndex);
                 var result = new NativeArray<float>(clipBinging.Outputs, Allocator.Temp);
                 unsafe
                 {
-                    clipBinging.Blob.Value.Sample((float*)result.GetUnsafePtr(), time);
+                    clipBinging.Blob.Value.Sample((float*)result.GetUnsafePtr(), animation.ValueRO.Time);
                 }
 
                 ref var channels = ref clipBinging.Blob.Value.channels;
-                float duration = 0;
                 var offset = 0;
                 for (int i = 0; i < channels.Length; i++)
                 {
@@ -66,22 +64,8 @@ namespace Budget.GLTF
                         default:
                             throw new Exception($"unsupported path: ${channel.path}");
                     }
-
-                    duration = math.max(duration, channel.input[^1]);
                 }
-
                 result.Dispose();
-
-                if (time == duration)
-                {
-                    time = 0;
-                }
-                else
-                {
-                    time += SystemAPI.Time.DeltaTime;
-                    time = math.min(time, duration);
-                }
-                animation.ValueRW.Time = time;
             }
 
             Profile.End(_ProfileEntry);
