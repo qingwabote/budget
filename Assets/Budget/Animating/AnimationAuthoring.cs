@@ -3,7 +3,7 @@ using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
 
-namespace Budget.GLTF
+namespace Budget
 {
     public struct ChannelTarget : IBufferElementData
     {

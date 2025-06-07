@@ -2,7 +2,7 @@ using Unity.Burst;
 using Unity.Entities;
 using Unity.Mathematics;
 
-namespace Budget.GLTF
+namespace Budget
 {
     partial struct AnimationTimeStepper : ISystem
     {

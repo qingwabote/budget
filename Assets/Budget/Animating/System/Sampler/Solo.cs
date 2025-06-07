@@ -6,7 +6,7 @@ using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
 
-namespace Budget.GLTF
+namespace Budget
 {
     [UpdateBefore(typeof(AnimationTimeStepper))]
     partial struct Solo : ISystem

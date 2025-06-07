@@ -114,8 +114,6 @@ namespace Budget.GLTF
 
         public override void OnAfterImportNode(Node node, int nodeIndex, GameObject nodeObject)
         {
-            nodeObject.AddComponent<NameAuthoring>();
-
             var renderer = nodeObject.GetComponent<Renderer>();
             if (renderer)
             {

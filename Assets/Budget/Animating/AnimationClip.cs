@@ -4,7 +4,7 @@ using Unity.Entities;
 using Unity.Entities.Serialization;
 using UnityEngine;
 
-namespace Budget.GLTF
+namespace Budget
 {
     public class AnimationClip : ScriptableObject, ISerializationCallbackReceiver
     {
