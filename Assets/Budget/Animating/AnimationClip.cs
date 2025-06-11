@@ -14,6 +14,7 @@ namespace Budget
         [NonSerialized]
         public BlobAssetReference<Clip> Blob;
 
+        [HideInInspector]
         public string[] Nodes;
 
         public void OnBeforeSerialize()

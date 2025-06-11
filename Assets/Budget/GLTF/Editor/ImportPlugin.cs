@@ -139,6 +139,26 @@ namespace Budget.GLTF
                 }
 
             }
+            if (_context.Root.Skins != null)
+            {
+                var skinnedRenderer = sceneObject.GetComponentInChildren<UnityEngine.SkinnedMeshRenderer>();
+
+                var skin = ScriptableObject.CreateInstance<Skin>();
+                skin.name = _context.Root.Skins[0].Name ?? "Skin_0";
+
+                var joints = new string[skinnedRenderer.bones.Length];
+                for (int i = 0; i < joints.Length; i++)
+                {
+                    joints[i] = RelativePathFrom(skinnedRenderer.bones[i].transform, sceneObject.transform);
+                }
+                skin.Joints = joints;
+
+                var authoring = sceneObject.AddComponent<SkinAuthoring>();
+                authoring.Skin = skin;
+                authoring.Joints = skinnedRenderer.bones;
+
+                _context.AssetContext.AddObjectToAsset($"Budget_{skin.name}", skin);
+            }
         }
     }
 
