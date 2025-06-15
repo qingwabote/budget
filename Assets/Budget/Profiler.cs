@@ -6,9 +6,9 @@ using UnityEngine;
 
 public struct Entry
 {
-    public FixedString32Bytes name;
-    public float delta;
-    public float time;
+    public FixedString32Bytes Name;
+    public float Delta;
+    public float Value;
 }
 
 public struct Profile
@@ -26,21 +26,27 @@ public struct Profile
     {
         _Entries.Data.Add(new Entry()
         {
-            name = name
+            Name = name
         });
         return _Entries.Data.Length - 1;
+    }
+
+    public static void Set(int entry, int value)
+    {
+        ref Entry ent = ref _Entries.Data.ElementAt(entry);
+        ent.Value = value;
     }
 
     public static void Begin(int entry)
     {
         ref Entry ent = ref _Entries.Data.ElementAt(entry);
-        ent.time = Time.realtimeSinceStartup;
+        ent.Value = Time.realtimeSinceStartup;
     }
 
     public static void End(int entry)
     {
         ref Entry ent = ref _Entries.Data.ElementAt(entry);
-        ent.delta += Time.realtimeSinceStartup - ent.time;
+        ent.Delta += Time.realtimeSinceStartup - ent.Value;
     }
 }
 
@@ -76,10 +82,19 @@ public class Profiler : MonoBehaviour
         for (int i = 0; i < entries.Length; i++)
         {
             ref var entry = ref entries.ElementAt(i);
-            name = entry.name.ToString().PadRight(PadRight);
-            string ms = (entry.delta / _frames * 1000).ToString("F3").PadLeft(PadLeft);
-            text += $"\n{name} {ms}ms";
-            entry.delta = 0;
+            name = entry.Name.ToString().PadRight(PadRight);
+            if (entry.Delta > 0)
+            {
+                string ms = (entry.Delta / _frames * 1000).ToString("F3").PadLeft(PadLeft);
+                text += $"\n{name} {ms}ms";
+                entry.Delta = 0;
+            }
+            else
+            {
+                string value = entry.Value.ToString().PadLeft(PadLeft);
+                text += $"\n{name} {value}";
+            }
+
         }
 
         _label.text = text;

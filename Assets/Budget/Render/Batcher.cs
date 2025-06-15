@@ -16,7 +16,9 @@ namespace Budget
         public readonly NativeList<Matrix4x4> Worlds;
         public readonly IReadOnlyDictionary<int, List<float>> Properties;
 
-        public Batch(Mesh mesh, Material material, IReadOnlyDictionary<int, List<float>> properties)
+        public int Count;
+
+        public Batch(Mesh mesh, Material material, IReadOnlyDictionary<int, List<float>> properties = null)
         {
             Mesh = mesh;
             Material = material;
@@ -29,29 +31,49 @@ namespace Budget
     [UpdateInGroup(typeof(LateSimulationSystemGroup))]
     partial struct Batcher : ISystem
     {
-        private int _mProfileEntry;
+        private int _mTimeEntry;
+        private int _mNumEntry;
 
         public void OnCreate(ref SystemState state)
         {
-            _mProfileEntry = Profile.DefineEntry("Batcher");
+            _mTimeEntry = Profile.DefineEntry("Batcher");
+            _mNumEntry = Profile.DefineEntry("Batch Count");
         }
 
         public void OnUpdate(ref SystemState state)
         {
-            Profile.Begin(_mProfileEntry);
-
-            // NativeArray<Matrix4x4> instData = new(1, Allocator.Temp);
+            Profile.Begin(_mTimeEntry);
             foreach (var (modelCompont, localToWorld) in SystemAPI.Query<ModelComponet, RefRO<LocalToWorld>>())
             {
                 var model = modelCompont.Value;
-                var rp = new RenderParams(model.Material);
-                Graphics.RenderMesh(rp, model.Mesh, 0, localToWorld.ValueRO.Value);
-                // instData[0] = localToWorld.ValueRO.Value;
-                // Graphics.RenderMeshInstanced(rp, model.Mesh, 0, instData, 1);
+                KeyValuePair<int, int> key = new(model.Mesh.GetInstanceID(), model.Material.GetInstanceID());
+                if (!Batch.Cache.TryGetValue(key, out Batch batch))
+                {
+                    Batch.Cache.Add(key, batch = new Batch(model.Mesh, model.Material));
+                }
+                batch.Worlds.Add(localToWorld.ValueRO.Value);
+                batch.Count++;
             }
-            // instData.Dispose();
 
-            Profile.End(_mProfileEntry);
+            int count = 0;
+            foreach (var batch in Batch.Cache.Values)
+            {
+                if (batch.Count < 1)
+                {
+                    continue;
+                }
+
+                var rp = new RenderParams(batch.Material);
+                Graphics.RenderMeshInstanced(rp, batch.Mesh, 0, batch.Worlds.AsArray(), batch.Count);
+
+                batch.Worlds.Clear();
+                batch.Count = 0;
+
+                count++;
+            }
+            Profile.End(_mTimeEntry);
+
+            Profile.Set(_mNumEntry, count);
         }
     }
 }

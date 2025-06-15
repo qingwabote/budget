@@ -47,38 +47,38 @@ namespace Budget
         public Material Material;
     }
 
-    [UpdateInGroup(typeof(LateSimulationSystemGroup))]
-    partial struct SkinnedMeshRendererSystem : ISystem
-    {
-        private int _ProfileEntry;
+    // [UpdateInGroup(typeof(LateSimulationSystemGroup))]
+    // partial struct SkinnedMeshRendererSystem : ISystem
+    // {
+    //     private int _ProfileEntry;
 
-        public void OnCreate(ref SystemState state)
-        {
-            _ProfileEntry = Profile.DefineEntry("SkinnedMeshRenderer");
-        }
+    //     public void OnCreate(ref SystemState state)
+    //     {
+    //         _ProfileEntry = Profile.DefineEntry("Skin");
+    //     }
 
-        public void OnUpdate(ref SystemState state)
-        {
-            Profile.Begin(_ProfileEntry);
+    //     public void OnUpdate(ref SystemState state)
+    //     {
+    //         Profile.Begin(_ProfileEntry);
 
-            NativeArray<Matrix4x4> instData = new(1, Allocator.Temp);
-            var jointsOffset = new float[1];
-            jointsOffset[0] = 6;
-            var matProps = new MaterialPropertyBlock();
-            matProps.SetFloatArray("_JointsOffset", jointsOffset);
-            foreach (var (renderer, localToWorld) in SystemAPI.Query<SkinnedMeshRenderer, RefRO<LocalToWorld>>())
-            {
-                var rp = new RenderParams(renderer.Material)
-                {
-                    matProps = matProps
-                };
-                instData[0] = localToWorld.ValueRO.Value;
-                Graphics.RenderMeshInstanced(rp, renderer.Mesh, 0, instData, 1);
-            }
-            instData.Dispose();
+    //         NativeArray<Matrix4x4> instData = new(1, Allocator.Temp);
+    //         var jointsOffset = new float[1];
+    //         jointsOffset[0] = 6;
+    //         var matProps = new MaterialPropertyBlock();
+    //         matProps.SetFloatArray("_JointsOffset", jointsOffset);
+    //         foreach (var (renderer, localToWorld) in SystemAPI.Query<SkinnedMeshRenderer, RefRO<LocalToWorld>>())
+    //         {
+    //             var rp = new RenderParams(renderer.Material)
+    //             {
+    //                 matProps = matProps
+    //             };
+    //             instData[0] = localToWorld.ValueRO.Value;
+    //             Graphics.RenderMeshInstanced(rp, renderer.Mesh, 0, instData, 1);
+    //         }
+    //         instData.Dispose();
 
-            Profile.End(_ProfileEntry);
-        }
-    }
+    //         Profile.End(_ProfileEntry);
+    //     }
+    // }
 }
 
