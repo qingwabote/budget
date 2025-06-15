@@ -155,7 +155,6 @@ namespace Budget.GLTF
 
                 var authoring = sceneObject.AddComponent<SkinAuthoring>();
                 authoring.Skin = skin;
-                authoring.Joints = skinnedRenderer.bones;
 
                 _context.AssetContext.AddObjectToAsset($"Budget_{skin.name}", skin);
             }

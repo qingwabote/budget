@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
-using Unity.Collections;
 using Unity.Entities;
-using Unity.Mathematics;
 using UnityEngine;
 
 namespace Budget
@@ -11,14 +9,14 @@ namespace Budget
     {
         [HideInInspector]
         public Skin Skin;
-
-        [HideInInspector]
-        public Transform[] Joints;
+        public bool Baking;
     }
 
-    public class SkinProto : IComponentData
+    public class SkinInfo : IComponentData
     {
-        public Skin Value;
+        public Skin Proto;
+        public bool Baking;
+        public Skin.Store Store => Baking ? Proto.Persistent : Proto.Persistent;
     }
 
     public struct SkinNode : IBufferElementData
@@ -27,9 +25,13 @@ namespace Budget
         public int Parent;
     }
 
-    public struct SkinJoints : IComponentData
+    [ChunkSerializable]
+    public unsafe struct SkinJoint : IComponentData
     {
-        public int Value;
+        public int Index;
+
+        public float* StoreSource;
+        public int StoreOffset;
     }
 
     class SkinBaker : Baker<SkinAuthoring>
@@ -106,22 +108,17 @@ namespace Budget
                     Parent = parent
                 });
             }
-            AddComponent(entity, new SkinJoints
+            AddComponent(entity, new SkinJoint
             {
-                Value = JointStart
+                Index = JointStart,
+                StoreSource = null,
+                StoreOffset = -1
             });
-            AddComponentObject(entity, new SkinProto
+            AddComponentObject(entity, new SkinInfo
             {
-                Value = authoring.Skin
+                Proto = authoring.Skin,
+                Baking = authoring.Baking
             });
         }
     }
-
-    // public struct Skin
-    // {
-    //     public static void Matrices(ref NativeArray<float> output, ref DynamicBuffer<SkinNode> nodes, int joints)
-    //     {
-
-    //     }
-    // }
 }

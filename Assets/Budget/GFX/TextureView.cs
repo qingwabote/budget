@@ -1,13 +1,14 @@
+using Unity.Collections;
 using Unity.Mathematics;
 using UnityEngine;
 
 namespace Budget
 {
-    public class TextureView<T> : MemoryView<T> where T : unmanaged
+    public class TextureView : MemoryView<float>
     {
         private static int Length2extent(int length)
         {
-            var texels = math.ceil(length / 4);
+            var texels = math.ceil(length / 4.0f);
             var extent = math.ceil(math.sqrt(texels));
             var n = math.ceil(math.log2(extent));
             return (int)math.pow(2, n);
@@ -20,6 +21,20 @@ namespace Budget
         private TextureView(int extent, TextureFormat format) : base(extent * extent * 4)
         {
             Texture = new Texture2D(extent, extent, format, false, true);
+            _mSource = Texture.GetPixelData<float>(0);
+        }
+
+        protected override void Reserve(int capacity)
+        {
+            var extent = Length2extent(capacity);
+            if (Texture.width >= extent)
+            {
+            }
+            Texture.Reinitialize(extent, extent);
+            // FIXME: UB - accessing old memory after Reinitialize
+            var Source = _mSource;
+            _mSource = Texture.GetPixelData<float>(0);
+            _mSource.CopyFrom(Source);
         }
     }
 }

@@ -1,16 +1,19 @@
+using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine;
 
 namespace Budget
 {
     public class Skin : ScriptableObject
     {
-        public class Store
+        public unsafe class Store
         {
-            protected readonly TextureView<float> _mView;
+            protected readonly TextureView _mView;
+
+            public float* Source => (float*)_mView.Source.GetUnsafePtr();
 
             public Store()
             {
-
+                _mView = new TextureView(1);
             }
         }
 

@@ -10,7 +10,7 @@ namespace Budget
         public Entity Value;
     }
 
-    public struct ClipBinging : IBufferElementData
+    public struct ClipBinging : IBufferElementData, IEnableableComponent
     {
         public BlobAssetReference<Clip> Blob;
         public int TargetIndex;
