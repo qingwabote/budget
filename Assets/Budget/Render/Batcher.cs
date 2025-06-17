@@ -14,11 +14,12 @@ namespace Budget
         public readonly Material Material;
 
         public readonly NativeList<Matrix4x4> Worlds;
+
         public readonly IReadOnlyDictionary<int, List<float>> Properties;
 
         public int Count;
 
-        public Batch(Mesh mesh, Material material, IReadOnlyDictionary<int, List<float>> properties = null)
+        public Batch(Mesh mesh, Material material, IReadOnlyDictionary<int, List<float>> properties)
         {
             Mesh = mesh;
             Material = material;
@@ -49,8 +50,9 @@ namespace Budget
                 KeyValuePair<int, int> key = new(model.Mesh.GetInstanceID(), model.Material.GetInstanceID());
                 if (!Batch.Cache.TryGetValue(key, out Batch batch))
                 {
-                    Batch.Cache.Add(key, batch = new Batch(model.Mesh, model.Material));
+                    Batch.Cache.Add(key, batch = new Batch(model.Mesh, model.Material, model.Properties()));
                 }
+                model.Properties(batch.Properties);
                 batch.Worlds.Add(localToWorld.ValueRO.Value);
                 batch.Count++;
             }
