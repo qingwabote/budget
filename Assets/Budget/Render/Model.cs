@@ -6,10 +6,12 @@ namespace Budget
 {
     public class Model
     {
+        private static readonly int[] s_Properties = { };
+
         public Mesh Mesh;
         public Material Material;
 
-        virtual public IReadOnlyDictionary<int, List<float>> Properties() { return null; }
+        virtual public int[] Properties() { return s_Properties; }
 
         virtual public void Properties(IReadOnlyDictionary<int, List<float>> output) { }
     }

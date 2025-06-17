@@ -7,14 +7,9 @@ namespace Budget
     {
         public static readonly int OFFSET = Shader.PropertyToID("_JointsOffset");
 
-        override public IReadOnlyDictionary<int, List<float>> Properties()
-        {
-            Dictionary<int, List<float>> dict = new()
-            {
-                { OFFSET, new List<float>() }
-            };
-            return dict;
-        }
+        private static readonly int[] s_Properties = { OFFSET };
+
+        override public int[] Properties() { return s_Properties; }
 
         override public void Properties(IReadOnlyDictionary<int, List<float>> output)
         {
