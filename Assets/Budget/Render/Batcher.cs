@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Unity.Collections;
 using Unity.Entities;
@@ -6,76 +7,108 @@ using UnityEngine;
 
 namespace Budget
 {
-    class Batch
+    class Pool<T> where T : new()
     {
-        public static Dictionary<KeyValuePair<int, int>, Batch> Cache = new();
+        private readonly List<T> m_Data = new();
+        public IReadOnlyList<T> Data => m_Data;
 
-        public readonly Mesh Mesh;
-        public readonly Material Material;
+        private int m_Count = 0;
+        public int Count => m_Count;
 
-        public readonly NativeList<Matrix4x4> Worlds;
+        private readonly Func<T> m_Creator;
 
-        public readonly IReadOnlyDictionary<int, List<float>> Properties;
-
-        public int Count;
-
-        public Batch(Mesh mesh, Material material, IReadOnlyDictionary<int, List<float>> properties)
+        public Pool(Func<T> creator = null)
         {
-            Mesh = mesh;
-            Material = material;
+            m_Creator = creator;
+        }
 
-            Worlds = new(1, Allocator.Persistent);
-            Properties = properties;
+        public T Get()
+        {
+            if (m_Data.Count == m_Count)
+            {
+                m_Data.Add(m_Creator == null ? new T() : m_Creator());
+            }
+            return m_Data[m_Count++];
+        }
+
+        public void Reset()
+        {
+            m_Count = 0;
         }
     }
 
     [UpdateInGroup(typeof(LateSimulationSystemGroup))]
     partial struct Batcher : ISystem
     {
-        private int _mTimeEntry;
-        private int _mNumEntry;
+        private static readonly Pool<Batch> s_Queue = new();
+        private static readonly MaterialPropertyBlock s_MPB = new();
+
+        private int m_BatchEntry;
+        private int m_CountEntry;
+        private int m_RenderEntry;
 
         public void OnCreate(ref SystemState state)
         {
-            _mTimeEntry = Profile.DefineEntry("Batcher");
-            _mNumEntry = Profile.DefineEntry("Batch Count");
+            m_BatchEntry = Profile.DefineEntry("Batch");
+            m_CountEntry = Profile.DefineEntry("Count");
+            m_RenderEntry = Profile.DefineEntry("Render");
         }
 
         public void OnUpdate(ref SystemState state)
         {
-            Profile.Begin(_mTimeEntry);
+            Profile.Begin(m_BatchEntry);
+            s_Queue.Reset();
+            NativeHashMap<int, int> cache = new(8, Allocator.Temp);
             foreach (var (modelCompont, localToWorld) in SystemAPI.Query<ModelComponet, RefRO<LocalToWorld>>())
             {
                 var model = modelCompont.Value;
-                KeyValuePair<int, int> key = new(model.Mesh.GetInstanceID(), model.Material.GetInstanceID());
-                if (!Batch.Cache.TryGetValue(key, out Batch batch))
-                {
-                    Batch.Cache.Add(key, batch = new Batch(model.Mesh, model.Material, model.Properties()));
-                }
-                model.Properties(batch.Properties);
-                batch.Worlds.Add(localToWorld.ValueRO.Value);
-                batch.Count++;
-            }
 
-            int count = 0;
-            foreach (var batch in Batch.Cache.Values)
+                int key = model.Hash();
+                Batch batch;
+                if (cache.TryGetValue(key, out int index))
+                {
+                    batch = s_Queue.Data[index];
+                }
+                else
+                {
+                    cache.Add(key, s_Queue.Count);
+                    batch = s_Queue.Get();
+                    batch.Mesh = model.Mesh;
+                    batch.Material = model.Material;
+                    batch.MaterialProperty.Clear();
+                    model.MaterialProperty(batch.MaterialProperty);
+                    batch.InstanceWorlds.Clear();
+                    batch.InstanceCount = 0;
+                }
+                batch.InstanceWorlds.Add(localToWorld.ValueRO.Value);
+                model.InstanceProperty(batch.MaterialProperty);
+                batch.InstanceCount++;
+            }
+            Profile.End(m_BatchEntry);
+            Profile.Set(m_CountEntry, s_Queue.Count);
+
+            Profile.Begin(m_RenderEntry);
+            for (int i = 0; i < s_Queue.Count; i++)
             {
-                if (batch.Count < 1)
+                var batch = s_Queue.Data[i];
+
+                s_MPB.Clear();
+                foreach (var (id, texture) in batch.MaterialProperty.Textures)
                 {
-                    continue;
+                    s_MPB.SetTexture(id, texture);
+                }
+                foreach (var (id, list) in batch.MaterialProperty.Floats)
+                {
+                    s_MPB.SetFloatArray(id, list);
                 }
 
-                var rp = new RenderParams(batch.Material);
-                Graphics.RenderMeshInstanced(rp, batch.Mesh, 0, batch.Worlds.AsArray(), batch.Count);
-
-                batch.Worlds.Clear();
-                batch.Count = 0;
-
-                count++;
+                var rp = new RenderParams(batch.Material)
+                {
+                    matProps = s_MPB
+                };
+                Graphics.RenderMeshInstanced(rp, batch.Mesh, 0, batch.InstanceWorlds.AsArray().Reinterpret<Matrix4x4>(), batch.InstanceCount);
             }
-            Profile.End(_mTimeEntry);
-
-            Profile.Set(_mNumEntry, count);
+            Profile.End(m_RenderEntry);
         }
     }
 }
