@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using Unity.Collections;
 using Unity.Entities;
-using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
 
@@ -38,26 +37,11 @@ namespace Budget
         }
     }
 
-    public class Batch
-    {
-        public Mesh Mesh;
-        public Material Material;
-
-        public NativeList<float4x4> Worlds;
-
-        public IReadOnlyDictionary<int, List<float>> Properties;
-
-        public int Count;
-    }
-
     [UpdateInGroup(typeof(LateSimulationSystemGroup))]
     partial struct Batcher : ISystem
     {
-        private static readonly Pool<NativeList<float4x4>> s_WorldsPool = new(() => new NativeList<float4x4>(Allocator.Persistent));
-        private static readonly Pool<Dictionary<int, List<float>>> s_PropertiesPool = new();
-        private static readonly Pool<List<float>> s_PropertyPool = new();
-
         private static readonly Pool<Batch> s_Queue = new();
+        private static readonly MaterialPropertyBlock s_MPB = new();
 
         private int m_BatchEntry;
         private int m_CountEntry;
@@ -73,27 +57,32 @@ namespace Budget
         public void OnUpdate(ref SystemState state)
         {
             Profile.Begin(m_BatchEntry);
-            s_WorldsPool.Reset();
             s_Queue.Reset();
             NativeHashMap<int, int> cache = new(8, Allocator.Temp);
             foreach (var (modelCompont, localToWorld) in SystemAPI.Query<ModelComponet, RefRO<LocalToWorld>>())
             {
                 var model = modelCompont.Value;
 
-                int key = model.Mesh.GetHashCode() ^ model.Material.GetHashCode();
-                if (!cache.TryGetValue(key, out int batch))
+                int key = model.Hash();
+                Batch batch;
+                if (cache.TryGetValue(key, out int index))
                 {
-                    batch = s_Queue.Count;
-                    s_Queue.Get();
-                    s_Queue.Data[batch].Mesh = model.Mesh;
-                    s_Queue.Data[batch].Material = model.Material;
-                    s_Queue.Data[batch].Worlds = s_WorldsPool.Get();
-                    s_Queue.Data[batch].Worlds.Clear();
-                    s_Queue.Data[batch].Count = 0;
-                    cache.Add(key, batch);
+                    batch = s_Queue.Data[index];
                 }
-                s_Queue.Data[batch].Worlds.Add(localToWorld.ValueRO.Value);
-                s_Queue.Data[batch].Count++;
+                else
+                {
+                    cache.Add(key, s_Queue.Count);
+                    batch = s_Queue.Get();
+                    batch.Mesh = model.Mesh;
+                    batch.Material = model.Material;
+                    batch.MaterialProperty.Clear();
+                    model.MaterialProperty(batch.MaterialProperty);
+                    batch.InstanceWorlds.Clear();
+                    batch.InstanceCount = 0;
+                }
+                batch.InstanceWorlds.Add(localToWorld.ValueRO.Value);
+                model.InstanceProperty(batch.MaterialProperty);
+                batch.InstanceCount++;
             }
             Profile.End(m_BatchEntry);
             Profile.Set(m_CountEntry, s_Queue.Count);
@@ -102,8 +91,22 @@ namespace Budget
             for (int i = 0; i < s_Queue.Count; i++)
             {
                 var batch = s_Queue.Data[i];
-                var rp = new RenderParams(batch.Material);
-                Graphics.RenderMeshInstanced(rp, batch.Mesh, 0, batch.Worlds.AsArray().Reinterpret<Matrix4x4>(), batch.Count);
+
+                s_MPB.Clear();
+                foreach (var (id, texture) in batch.MaterialProperty.Textures)
+                {
+                    s_MPB.SetTexture(id, texture);
+                }
+                foreach (var (id, list) in batch.MaterialProperty.Floats)
+                {
+                    s_MPB.SetFloatArray(id, list);
+                }
+
+                var rp = new RenderParams(batch.Material)
+                {
+                    matProps = s_MPB
+                };
+                Graphics.RenderMeshInstanced(rp, batch.Mesh, 0, batch.InstanceWorlds.AsArray().Reinterpret<Matrix4x4>(), batch.InstanceCount);
             }
             Profile.End(m_RenderEntry);
         }
