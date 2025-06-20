@@ -6462,7 +6462,7 @@ var unityFramework = (() => {
       createPath: (parent, path, canRead, canWrite) => {
         parent = typeof parent == "string" ? parent : FS.getPath(parent);
 
-        // ContentArchives hack
+        // entities hack
         parent = parent.replace('vfs_streamingassets', 'StreamingAssets');
         path = path.replace('vfs_streamingassets', 'StreamingAssets');
 
@@ -6493,7 +6493,7 @@ var unityFramework = (() => {
           path = name ? PATH.join2(parent, name) : parent
         }
 
-        // ContentArchives hack
+        // entities hack
         path = path.replace('vfs_streamingassets', 'StreamingAssets');
 
         var mode = FS.getMode(canRead, canWrite);
@@ -14200,6 +14200,13 @@ var unityFramework = (() => {
         return
       }
       cb.clientside = false;
+
+      // UNSIGNED_INT hack
+      if (type == 5125) {
+        _glVertexAttribIPointer(index, size, type, stride, ptr)
+        return;
+      }
+
       GLctx.vertexAttribPointer(index, size, type, !!normalized, stride, ptr)
     }
     function _glViewport(x0, x1, x2, x3) {

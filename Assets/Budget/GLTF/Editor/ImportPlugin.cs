@@ -121,10 +121,6 @@ namespace Budget.GLTF
                 {
                     nodeObject.AddComponent<MeshRendererAuthoring>();
                 }
-                else if (renderer is UnityEngine.SkinnedMeshRenderer)
-                {
-                    nodeObject.AddComponent<SkinnedMeshRendererAuthoring>();
-                }
             }
         }
 
@@ -152,9 +148,29 @@ namespace Budget.GLTF
                     joints[i] = RelativePathFrom(skinnedRenderer.bones[i].transform, sceneObject.transform);
                 }
                 skin.Joints = joints;
+                {
+                    var bindposes = skinnedRenderer.sharedMesh.bindposes;
 
-                var authoring = sceneObject.AddComponent<SkinAuthoring>();
-                authoring.Skin = skin;
+                    var builder = new BlobBuilder(Allocator.Temp);
+                    ref var inverseBindMatrices = ref builder.ConstructRoot<InverseBindMatrices>();
+                    var data = builder.Allocate(ref inverseBindMatrices.Data, bindposes.Length);
+                    for (int i = 0; i < bindposes.Length; i++)
+                    {
+                        data[i] = bindposes[i];
+                    }
+                    skin.InverseBindMatrices = builder.CreateBlobAssetReference<InverseBindMatrices>(Allocator.Persistent);
+                    builder.Dispose();
+                }
+
+                var skinAuthoring = sceneObject.AddComponent<SkinAuthoring>();
+                skinAuthoring.Proto = skin;
+
+                var skinnedRenderers = sceneObject.GetComponentsInChildren<SkinnedMeshRenderer>();
+                foreach (var renderer in skinnedRenderers)
+                {
+                    var authoring = renderer.gameObject.AddComponent<SkinnedMeshRendererAuthoring>();
+                    authoring.Skin = skinAuthoring;
+                }
 
                 _context.AssetContext.AddObjectToAsset($"Budget_{skin.name}", skin);
             }

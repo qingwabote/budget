@@ -6,6 +6,8 @@ namespace Budget
     {
         public static readonly int OFFSET = Shader.PropertyToID("_JointsOffset");
 
+        public SkinInfo Skin;
+
         override public void InstanceProperty(MaterialProperty output)
         {
 

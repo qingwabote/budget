@@ -10,16 +10,20 @@ namespace Budget
     {
         public Mesh Mesh;
         public Material Material;
+        public Entity Skin;
     }
 
-    public class SkinnedMeshRendererAuthoring : MonoBehaviour { }
+    public class SkinnedMeshRendererAuthoring : MonoBehaviour
+    {
+        public SkinAuthoring Skin;
+    }
 
     class SkinnedMeshRendererBaker : Baker<SkinnedMeshRendererAuthoring>
     {
         public override void Bake(SkinnedMeshRendererAuthoring authoring)
         {
             var entity = GetEntity(TransformUsageFlags.Dynamic);
-            var meshRenderer = authoring.GetComponent<UnityEngine.SkinnedMeshRenderer>();
+            var meshRenderer = authoring.GetComponent<SkinnedMeshRenderer>();
             // if (authoring.gameObject == meshRenderer.rootBone.gameObject)
             // {
             //     var root = CreateAdditionalEntity(TransformUsageFlags.None);
@@ -36,15 +40,10 @@ namespace Budget
             AddComponentObject(entity, new SkinnedMeshRendererBaking
             {
                 Mesh = meshRenderer.sharedMesh,
-                Material = meshRenderer.sharedMaterial
+                Material = meshRenderer.sharedMaterial,
+                Skin = GetEntity(authoring.Skin, TransformUsageFlags.None)
             });
         }
-    }
-
-    public class SkinnedMeshRenderer : IComponentData
-    {
-        public Mesh Mesh;
-        public Material Material;
     }
 
     // [UpdateInGroup(typeof(LateSimulationSystemGroup))]

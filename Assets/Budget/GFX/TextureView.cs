@@ -1,4 +1,6 @@
+using System;
 using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 using Unity.Mathematics;
 using UnityEngine;
 
@@ -21,7 +23,7 @@ namespace Budget
         private TextureView(int extent, TextureFormat format) : base(extent * extent * 4)
         {
             Texture = new Texture2D(extent, extent, format, false, true);
-            _mSource = Texture.GetPixelData<float>(0);
+            m_Source = Texture.GetPixelData<float>(0);
         }
 
         protected override void Reserve(int capacity)
@@ -29,12 +31,22 @@ namespace Budget
             var extent = Length2extent(capacity);
             if (Texture.width >= extent)
             {
+                return;
             }
-            Texture.Reinitialize(extent, extent);
             // FIXME: UB - accessing old memory after Reinitialize
-            var Source = _mSource;
-            _mSource = Texture.GetPixelData<float>(0);
-            _mSource.CopyFrom(Source);
+            unsafe
+            {
+                var Source = m_Source.GetUnsafePtr();
+                var Length = m_Source.Length;
+                Texture.Reinitialize(extent, extent);
+                m_Source = Texture.GetPixelData<float>(0);
+                UnsafeUtility.MemCpy(m_Source.GetUnsafePtr(), Source, Length);
+            }
+        }
+
+        protected override void Upload()
+        {
+            Texture.Apply(false);
         }
     }
 }
