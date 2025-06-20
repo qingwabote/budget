@@ -7,7 +7,7 @@ using UnityEngine;
 namespace Budget
 {
     [WorldSystemFilter(WorldSystemFilterFlags.BakingSystem)]
-    partial struct SkinnedMeshRendererBakingSystem : ISystem
+    partial struct SkinnedMeshRendererBaker : ISystem
     {
         public void OnUpdate(ref SystemState state)
         {
@@ -23,15 +23,14 @@ namespace Budget
                     materials.Add(renderer.Material, material);
                 }
 
-                // if (!skins.TryGetValue(renderer.RootBone, out Skin skin))
-                // {
-
-                // }
-                ecb.AddComponent(entity, new SkinnedMeshRenderer
+                var model = new SkinnedModel
                 {
+                    Transform = renderer.Skin,
                     Mesh = renderer.Mesh,
-                    Material = material
-                });
+                    Material = material,
+                    Skin = state.EntityManager.GetComponentObject<SkinInfoComponent>(renderer.Skin).Value
+                };
+                ecb.AddComponent(entity, new ModelComponet { Value = model });
             }
             ecb.Playback(state.EntityManager);
             ecb.Dispose();

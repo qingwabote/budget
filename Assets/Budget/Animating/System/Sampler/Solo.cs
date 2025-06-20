@@ -50,7 +50,7 @@ namespace Budget
                         case ChannelPath.ROTATION:
                             if (target != Entity.Null)
                             {
-                                SystemAPI.GetComponentRW<LocalTransform>(target).ValueRW.Rotation = new float4(result[offset], result[offset + 1], result[offset + 2], result[offset + 3]);
+                                SystemAPI.GetComponentRW<LocalTransform>(target).ValueRW.Rotation = new float4(result[offset], -result[offset + 1], -result[offset + 2], result[offset + 3]);
                             }
                             offset += 4;
                             break;

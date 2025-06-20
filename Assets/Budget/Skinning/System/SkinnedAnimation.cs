@@ -1,4 +1,10 @@
+using System;
+using Unity.Burst;
+using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
+using Unity.Mathematics;
+using Unity.Transforms;
 using UnityEngine;
 
 namespace Budget
@@ -9,14 +15,15 @@ namespace Budget
         // [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
-            foreach (var (info, joint, _, entity) in SystemAPI.Query<SkinInfo, RefRW<SkinJoint>, DynamicBuffer<ClipBinging>>().WithEntityAccess().WithOptions(EntityQueryOptions.IgnoreComponentEnabledState))
+            foreach (var (info, joint) in SystemAPI.Query<SkinInfoComponent, RefRW<SkinJoint>>().WithOptions(EntityQueryOptions.IgnoreComponentEnabledState))
             {
-                Debug.Log("SkinnedAnimationFilter");
-                SystemAPI.SetBufferEnabled<ClipBinging>(entity, false);
+                var offset = info.Value.Store.Add();
+                // memory may be reallocated after Add();
                 unsafe
                 {
-                    joint.ValueRW.StoreSource = info.Store.Source;
+                    joint.ValueRW.Matrices = (float4x4*)(info.Value.Store.Source + offset);
                 }
+                info.Value.Offset = offset;
             }
         }
     }
@@ -24,12 +31,49 @@ namespace Budget
     [UpdateAfter(typeof(Solo))]
     partial struct SkinnedAnimationUpdater : ISystem
     {
-        // [BurstCompile]
+        [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
-            foreach (var (_, entity) in SystemAPI.Query<RefRW<SkinJoint>>().WithEntityAccess())
+            foreach (var (nodes, joint) in SystemAPI.Query<DynamicBuffer<SkinNode>, RefRW<SkinJoint>>())
             {
+                var matrixes = new NativeArray<float4x4>(nodes.Length, Allocator.Temp);
+                for (int i = 0; i < nodes.Length; i++)
+                {
+                    ref var node = ref nodes.ElementAt(i);
+                    var local = SystemAPI.GetComponentRO<LocalTransform>(node.Target);
+                    if (node.Parent == -1)
+                    {
+                        matrixes[i] = float4x4.TRS(local.ValueRO.Position, local.ValueRO.Rotation, local.ValueRO.Scale);
+                    }
+                    else
+                    {
+                        matrixes[i] = math.mul(matrixes[node.Parent], float4x4.TRS(local.ValueRO.Position, local.ValueRO.Rotation, local.ValueRO.Scale));
+                    }
+                }
 
+                ref var inverseBindMatrices = ref joint.ValueRO.InverseBindMatrices.Value.Data;
+                var jointOffset = joint.ValueRO.Index;
+                unsafe
+                {
+                    var JointSource = joint.ValueRO.Matrices;
+                    for (int i = 0; i < inverseBindMatrices.Length; i++)
+                    {
+                        var res = math.mul(matrixes[i + jointOffset], inverseBindMatrices[i]);
+                        UnsafeUtility.MemCpy(JointSource + i, &res, UnsafeUtility.SizeOf<float4x4>());
+                    }
+                }
+            }
+        }
+    }
+
+    [UpdateAfter(typeof(SkinnedAnimationUpdater))]
+    partial struct SkinnedAnimationUploader : ISystem
+    {
+        public void OnUpdate(ref SystemState state)
+        {
+            foreach (var skin in SystemAPI.Query<SkinInfoComponent>())
+            {
+                skin.Value.Store.Update();
             }
         }
     }

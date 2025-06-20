@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Unity.Entities;
+using Unity.Mathematics;
 using UnityEngine;
 
 namespace Budget
@@ -8,15 +9,21 @@ namespace Budget
     public class SkinAuthoring : MonoBehaviour
     {
         [HideInInspector]
-        public Skin Skin;
+        public Skin Proto;
         public bool Baking;
     }
 
-    public class SkinInfo : IComponentData
+    public class SkinInfo
     {
         public Skin Proto;
         public bool Baking;
-        public Skin.Store Store => Baking ? Proto.Persistent : Proto.Persistent;
+        public int Offset;
+        public Skin.Store Store => Baking ? Proto.Persistent : Proto.Transient;
+    }
+
+    public class SkinInfoComponent : IComponentData
+    {
+        public SkinInfo Value;
     }
 
     public struct SkinNode : IBufferElementData
@@ -30,20 +37,21 @@ namespace Budget
     {
         public int Index;
 
-        public float* StoreSource;
-        public int StoreOffset;
+        public float4x4* Matrices;
+
+        public BlobAssetReference<InverseBindMatrices> InverseBindMatrices;
     }
 
     class SkinBaker : Baker<SkinAuthoring>
     {
         public override void Bake(SkinAuthoring authoring)
         {
-            var entity = CreateAdditionalEntity(TransformUsageFlags.None);
+            var entity = GetEntity(TransformUsageFlags.Dynamic);
 
             var transforms = new List<Transform>();
             {
                 var parent1 = authoring.transform;
-                var path = authoring.Skin.Joints[0].Split("/");
+                var path = authoring.Proto.Joints[0].Split("/");
                 for (int i = 0; i < path.Length - 1; i++)
                 {
                     var name = path[i];
@@ -66,7 +74,7 @@ namespace Budget
                 }
             }
             var JointStart = transforms.Count;
-            foreach (var path in authoring.Skin.Joints)
+            foreach (var path in authoring.Proto.Joints)
             {
                 var target = authoring.transform;
                 foreach (var name in path.Split("/"))
@@ -111,13 +119,17 @@ namespace Budget
             AddComponent(entity, new SkinJoint
             {
                 Index = JointStart,
-                StoreSource = null,
-                StoreOffset = -1
+                Matrices = null,
+                InverseBindMatrices = authoring.Proto.InverseBindMatrices
             });
-            AddComponentObject(entity, new SkinInfo
+            var skinInfo = new SkinInfo
             {
-                Proto = authoring.Skin,
+                Proto = authoring.Proto,
                 Baking = authoring.Baking
+            };
+            AddComponentObject(entity, new SkinInfoComponent
+            {
+                Value = skinInfo
             });
         }
     }

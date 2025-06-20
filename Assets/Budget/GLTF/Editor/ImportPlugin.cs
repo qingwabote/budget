@@ -4,8 +4,11 @@ using GLTF.Schema;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
+using Unity.Mathematics;
+using Unity.Transforms;
 using UnityEngine;
 using UnityGLTF;
+using UnityGLTF.Extensions;
 using UnityGLTF.Plugins;
 
 namespace Budget.GLTF
@@ -121,10 +124,6 @@ namespace Budget.GLTF
                 {
                     nodeObject.AddComponent<MeshRendererAuthoring>();
                 }
-                else if (renderer is UnityEngine.SkinnedMeshRenderer)
-                {
-                    nodeObject.AddComponent<SkinnedMeshRendererAuthoring>();
-                }
             }
         }
 
@@ -141,10 +140,12 @@ namespace Budget.GLTF
             }
             if (_context.Root.Skins != null)
             {
+                var schemaSkin = _context.Root.Skins[0];
+
                 var skinnedRenderer = sceneObject.GetComponentInChildren<UnityEngine.SkinnedMeshRenderer>();
 
                 var skin = ScriptableObject.CreateInstance<Skin>();
-                skin.name = _context.Root.Skins[0].Name ?? "Skin_0";
+                skin.name = schemaSkin.Name ?? "Skin_0";
 
                 var joints = new string[skinnedRenderer.bones.Length];
                 for (int i = 0; i < joints.Length; i++)
@@ -152,9 +153,37 @@ namespace Budget.GLTF
                     joints[i] = RelativePathFrom(skinnedRenderer.bones[i].transform, sceneObject.transform);
                 }
                 skin.Joints = joints;
+                {
+                    var accessor = schemaSkin.InverseBindMatrices.Value;
 
-                var authoring = sceneObject.AddComponent<SkinAuthoring>();
-                authoring.Skin = skin;
+                    var builder = new BlobBuilder(Allocator.Temp);
+                    ref var inverseBindMatrices = ref builder.ConstructRoot<InverseBindMatrices>();
+                    var data = builder.Allocate(ref inverseBindMatrices.Data, (int)accessor.Count);
+                    var bindposes = skinnedRenderer.sharedMesh.bindposes;
+                    for (int i = 0; i < bindposes.Length; i++)
+                    {
+                        data[i] = bindposes[i];
+                    }
+                    // TODO: Is there a cleaner way to access bufferData?
+                    // var bufferData = _context.SceneImporter.AnimationCache[0].Samplers[0].Input.bufferData;
+                    // unsafe
+                    // {
+                    //     var source = (byte*)bufferData.GetUnsafePtr() + accessor.ByteOffset + accessor.BufferView.Value.ByteOffset;
+                    //     UnsafeUtility.MemCpy(data.GetUnsafePtr(), source, 64 * accessor.Count);
+                    // }
+                    skin.InverseBindMatrices = builder.CreateBlobAssetReference<InverseBindMatrices>(Allocator.Persistent);
+                    builder.Dispose();
+                }
+
+                var skinAuthoring = sceneObject.AddComponent<SkinAuthoring>();
+                skinAuthoring.Proto = skin;
+
+                var skinnedRenderers = sceneObject.GetComponentsInChildren<SkinnedMeshRenderer>();
+                foreach (var renderer in skinnedRenderers)
+                {
+                    var authoring = renderer.gameObject.AddComponent<SkinnedMeshRendererAuthoring>();
+                    authoring.Skin = skinAuthoring;
+                }
 
                 _context.AssetContext.AddObjectToAsset($"Budget_{skin.name}", skin);
             }

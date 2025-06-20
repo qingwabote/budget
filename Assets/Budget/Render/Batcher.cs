@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Transforms;
@@ -7,40 +5,10 @@ using UnityEngine;
 
 namespace Budget
 {
-    class Pool<T> where T : new()
-    {
-        private readonly List<T> m_Data = new();
-        public IReadOnlyList<T> Data => m_Data;
-
-        private int m_Count = 0;
-        public int Count => m_Count;
-
-        private readonly Func<T> m_Creator;
-
-        public Pool(Func<T> creator = null)
-        {
-            m_Creator = creator;
-        }
-
-        public T Get()
-        {
-            if (m_Data.Count == m_Count)
-            {
-                m_Data.Add(m_Creator == null ? new T() : m_Creator());
-            }
-            return m_Data[m_Count++];
-        }
-
-        public void Reset()
-        {
-            m_Count = 0;
-        }
-    }
-
     [UpdateInGroup(typeof(LateSimulationSystemGroup))]
     partial struct Batcher : ISystem
     {
-        private static readonly Pool<Batch> s_Queue = new();
+        private static readonly TransientPool<Batch> s_Queue = new();
         private static readonly MaterialPropertyBlock s_MPB = new();
 
         private int m_BatchEntry;
@@ -57,9 +25,8 @@ namespace Budget
         public void OnUpdate(ref SystemState state)
         {
             Profile.Begin(m_BatchEntry);
-            s_Queue.Reset();
             NativeHashMap<int, int> cache = new(8, Allocator.Temp);
-            foreach (var (modelCompont, localToWorld) in SystemAPI.Query<ModelComponet, RefRO<LocalToWorld>>())
+            foreach (var modelCompont in SystemAPI.Query<ModelComponet>())
             {
                 var model = modelCompont.Value;
 
@@ -80,7 +47,7 @@ namespace Budget
                     batch.InstanceWorlds.Clear();
                     batch.InstanceCount = 0;
                 }
-                batch.InstanceWorlds.Add(localToWorld.ValueRO.Value);
+                batch.InstanceWorlds.Add(SystemAPI.GetComponentRO<LocalToWorld>(model.Transform).ValueRO.Value);
                 model.InstanceProperty(batch.MaterialProperty);
                 batch.InstanceCount++;
             }
