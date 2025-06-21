@@ -15,7 +15,12 @@ namespace Budget
 
             var meshRenderer = authoring.GetComponent<MeshRenderer>();
 
-            var model = new Model { Mesh = meshFilter.sharedMesh, Material = meshRenderer.sharedMaterial };
+            var model = new Model
+            {
+                Transform = entity,
+                Mesh = meshFilter.sharedMesh,
+                Material = meshRenderer.sharedMaterial
+            };
             AddComponentObject(entity, new ModelComponet { Value = model });
         }
     }

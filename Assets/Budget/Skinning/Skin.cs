@@ -17,10 +17,10 @@ namespace Budget
         public unsafe class Store
         {
             protected readonly TextureView m_View;
+            public Texture2D Texture => m_View.Texture;
+            public float* Source => (float*)m_View.Source.GetUnsafePtr();
 
             private readonly int m_Stride;
-
-            public float* Source => (float*)m_View.Source.GetUnsafePtr();
 
             public Store(int stride)
             {

@@ -23,7 +23,13 @@ namespace Budget
                     materials.Add(renderer.Material, material);
                 }
 
-                var model = new SkinnedModel { Mesh = renderer.Mesh, Material = material, Skin = state.EntityManager.GetComponentObject<SkinInfoComponent>(renderer.Skin).Value };
+                var model = new SkinnedModel
+                {
+                    Transform = renderer.Skin,
+                    Mesh = renderer.Mesh,
+                    Material = material,
+                    Skin = state.EntityManager.GetComponentObject<SkinInfoComponent>(renderer.Skin).Value
+                };
                 ecb.AddComponent(entity, new ModelComponet { Value = model });
             }
             ecb.Playback(state.EntityManager);

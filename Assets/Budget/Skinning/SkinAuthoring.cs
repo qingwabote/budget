@@ -13,10 +13,11 @@ namespace Budget
         public bool Baking;
     }
 
-    public class SkinInfo : ScriptableObject
+    public class SkinInfo
     {
         public Skin Proto;
         public bool Baking;
+        public int Offset;
         public Skin.Store Store => Baking ? Proto.Persistent : Proto.Transient;
     }
 
@@ -45,7 +46,7 @@ namespace Budget
     {
         public override void Bake(SkinAuthoring authoring)
         {
-            var entity = GetEntity(TransformUsageFlags.None);
+            var entity = GetEntity(TransformUsageFlags.Dynamic);
 
             var transforms = new List<Transform>();
             {
@@ -121,9 +122,11 @@ namespace Budget
                 Matrices = null,
                 InverseBindMatrices = authoring.Proto.InverseBindMatrices
             });
-            var skinInfo = ScriptableObject.CreateInstance<SkinInfo>();
-            skinInfo.Proto = authoring.Proto;
-            skinInfo.Baking = authoring.Baking;
+            var skinInfo = new SkinInfo
+            {
+                Proto = authoring.Proto,
+                Baking = authoring.Baking
+            };
             AddComponentObject(entity, new SkinInfoComponent
             {
                 Value = skinInfo

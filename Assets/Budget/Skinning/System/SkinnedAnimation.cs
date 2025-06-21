@@ -15,7 +15,7 @@ namespace Budget
         // [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
-            foreach (var (info, joint, _) in SystemAPI.Query<SkinInfoComponent, RefRW<SkinJoint>, DynamicBuffer<ClipBinging>>().WithOptions(EntityQueryOptions.IgnoreComponentEnabledState))
+            foreach (var (info, joint) in SystemAPI.Query<SkinInfoComponent, RefRW<SkinJoint>>().WithOptions(EntityQueryOptions.IgnoreComponentEnabledState))
             {
                 var offset = info.Value.Store.Add();
                 // memory may be reallocated after Add();
@@ -23,6 +23,7 @@ namespace Budget
                 {
                     joint.ValueRW.Matrices = (float4x4*)(info.Value.Store.Source + offset);
                 }
+                info.Value.Offset = offset;
             }
         }
     }

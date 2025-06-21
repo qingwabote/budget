@@ -137,10 +137,12 @@ namespace Budget.GLTF
             }
             if (_context.Root.Skins != null)
             {
+                var schemaSkin = _context.Root.Skins[0];
+
                 var skinnedRenderer = sceneObject.GetComponentInChildren<UnityEngine.SkinnedMeshRenderer>();
 
                 var skin = ScriptableObject.CreateInstance<Skin>();
-                skin.name = _context.Root.Skins[0].Name ?? "Skin_0";
+                skin.name = schemaSkin.Name ?? "Skin_0";
 
                 var joints = new string[skinnedRenderer.bones.Length];
                 for (int i = 0; i < joints.Length; i++)
@@ -149,14 +151,18 @@ namespace Budget.GLTF
                 }
                 skin.Joints = joints;
                 {
-                    var bindposes = skinnedRenderer.sharedMesh.bindposes;
+                    // TODO: Is there a cleaner way to access bufferData?
+                    var bufferData = _context.SceneImporter.AnimationCache[0].Samplers[0].Input.bufferData;
+
+                    var accessor = schemaSkin.InverseBindMatrices.Value;
 
                     var builder = new BlobBuilder(Allocator.Temp);
                     ref var inverseBindMatrices = ref builder.ConstructRoot<InverseBindMatrices>();
-                    var data = builder.Allocate(ref inverseBindMatrices.Data, bindposes.Length);
-                    for (int i = 0; i < bindposes.Length; i++)
+                    var data = builder.Allocate(ref inverseBindMatrices.Data, (int)accessor.Count);
+                    unsafe
                     {
-                        data[i] = bindposes[i];
+                        var source = (byte*)bufferData.GetUnsafePtr() + accessor.ByteOffset + accessor.BufferView.Value.ByteOffset;
+                        UnsafeUtility.MemCpy(data.GetUnsafePtr(), source, 64 * accessor.Count);
                     }
                     skin.InverseBindMatrices = builder.CreateBlobAssetReference<InverseBindMatrices>(Allocator.Persistent);
                     builder.Dispose();
