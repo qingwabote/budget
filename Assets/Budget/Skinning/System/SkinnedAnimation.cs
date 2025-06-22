@@ -1,11 +1,9 @@
-using System;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
-using UnityEngine;
 
 namespace Budget
 {
@@ -21,7 +19,7 @@ namespace Budget
                 // memory may be reallocated after Add();
                 unsafe
                 {
-                    joint.ValueRW.Matrices = (float4x4*)(info.Value.Store.Source + offset);
+                    joint.ValueRW.Matrices = (long)(info.Value.Store.Source + offset);
                 }
                 info.Value.Offset = offset;
             }
@@ -55,7 +53,7 @@ namespace Budget
                 var jointOffset = joint.ValueRO.Index;
                 unsafe
                 {
-                    var JointSource = joint.ValueRO.Matrices;
+                    var JointSource = (float4x4*)joint.ValueRO.Matrices;
                     for (int i = 0; i < inverseBindMatrices.Length; i++)
                     {
                         var res = math.mul(matrixes[i + jointOffset], inverseBindMatrices[i]);

@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using Unity.Entities;
-using Unity.Mathematics;
 using UnityEngine;
 
 namespace Budget
@@ -32,12 +31,11 @@ namespace Budget
         public int Parent;
     }
 
-    [ChunkSerializable]
     public unsafe struct SkinJoint : IComponentData
     {
         public int Index;
 
-        public float4x4* Matrices;
+        public long Matrices;
 
         public BlobAssetReference<InverseBindMatrices> InverseBindMatrices;
     }
@@ -119,7 +117,6 @@ namespace Budget
             AddComponent(entity, new SkinJoint
             {
                 Index = JointStart,
-                Matrices = null,
                 InverseBindMatrices = authoring.Proto.InverseBindMatrices
             });
             var skinInfo = new SkinInfo

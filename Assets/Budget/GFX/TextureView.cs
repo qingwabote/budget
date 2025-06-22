@@ -1,5 +1,3 @@
-using System;
-using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Mathematics;
 using UnityEngine;
@@ -38,7 +36,11 @@ namespace Budget
             {
                 var Source = m_Source.GetUnsafePtr();
                 var Length = m_Source.Length;
-                Texture.Reinitialize(extent, extent);
+                if (!Texture.Reinitialize(extent, extent))
+                {
+                    Debug.Log("Texture.Reinitialize failed!");
+                    return;
+                }
                 m_Source = Texture.GetPixelData<float>(0);
                 UnsafeUtility.MemCpy(m_Source.GetUnsafePtr(), Source, Length);
             }
