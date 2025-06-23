@@ -4,11 +4,11 @@ using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
+using UnityEngine;
 
 namespace Budget
 {
-    [UpdateBefore(typeof(Solo))]
-    partial struct SkinnedAnimationFilter : ISystem
+    public partial struct SkinnedAnimationFilter : ISystem
     {
         // [BurstCompile]
         public void OnUpdate(ref SystemState state)
@@ -26,10 +26,9 @@ namespace Budget
         }
     }
 
-    [UpdateAfter(typeof(Solo))]
-    partial struct SkinnedAnimationUpdater : ISystem
+    public partial struct SkinnedAnimationUpdater : ISystem
     {
-        [BurstCompile]
+        // [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
             foreach (var (nodes, joint) in SystemAPI.Query<DynamicBuffer<SkinNode>, RefRW<SkinJoint>>())
@@ -64,8 +63,7 @@ namespace Budget
         }
     }
 
-    [UpdateAfter(typeof(SkinnedAnimationUpdater))]
-    partial struct SkinnedAnimationUploader : ISystem
+    public partial struct SkinnedAnimationUploader : ISystem
     {
         public void OnUpdate(ref SystemState state)
         {

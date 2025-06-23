@@ -1,21 +1,12 @@
-using Unity.Collections;
 using Unity.Entities;
-using Unity.Transforms;
 using UnityEngine;
 
 namespace Budget
 {
-    [BakingType]
-    public class SkinnedMeshRendererBaking : IComponentData
-    {
-        public Mesh Mesh;
-        public Material Material;
-        public Entity Skin;
-    }
-
     public class SkinnedMeshRendererAuthoring : MonoBehaviour
     {
         public SkinAuthoring Skin;
+        public Material Material;
     }
 
     class SkinnedMeshRendererBaker : Baker<SkinnedMeshRendererAuthoring>
@@ -24,25 +15,13 @@ namespace Budget
         {
             var entity = GetEntity(TransformUsageFlags.Dynamic);
             var meshRenderer = authoring.GetComponent<SkinnedMeshRenderer>();
-            // if (authoring.gameObject == meshRenderer.rootBone.gameObject)
-            // {
-            //     var root = CreateAdditionalEntity(TransformUsageFlags.None);
-            //     var joints = AddBuffer<SkinJoint>(root);
-            //     foreach (var bone in meshRenderer.bones)
-            //     {
-
-            //         joints.Add(new SkinJoint
-            //         {
-            //             Value =
-            //         })
-            //     }
-            // }
-            AddComponentObject(entity, new SkinnedMeshRendererBaking
+            var model = new SkinnedModel
             {
+                Transform = GetEntity(authoring.Skin, TransformUsageFlags.None),
                 Mesh = meshRenderer.sharedMesh,
-                Material = meshRenderer.sharedMaterial,
-                Skin = GetEntity(authoring.Skin, TransformUsageFlags.None)
-            });
+                Material = authoring.Material,
+            };
+            AddComponentObject(entity, new ModelComponet { Value = model });
         }
     }
 }

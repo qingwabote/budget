@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Unity.Entities;
 using UnityEngine;
 
 namespace Budget
@@ -18,6 +19,11 @@ namespace Budget
         public static readonly int OFFSET = Shader.PropertyToID("_JointMapOffset");
 
         public SkinInfo Skin;
+
+        override public void Initialize(ref SystemState state)
+        {
+            Skin = state.EntityManager.GetComponentObject<SkinInfoComponent>(Transform).Value;
+        }
 
         override public int Hash() { return HashCode.Combine(Mesh.GetHashCode(), Material.GetHashCode(), Skin.Store.Texture.GetHashCode()); }
 

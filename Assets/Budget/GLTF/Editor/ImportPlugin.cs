@@ -178,10 +178,23 @@ namespace Budget.GLTF
                 var skinAuthoring = sceneObject.AddComponent<SkinAuthoring>();
                 skinAuthoring.Proto = skin;
 
+                var materials = new Dictionary<Material, Material>();
                 var skinnedRenderers = sceneObject.GetComponentsInChildren<SkinnedMeshRenderer>();
                 foreach (var renderer in skinnedRenderers)
                 {
+                    if (!materials.TryGetValue(renderer.sharedMaterial, out Material material))
+                    {
+                        material = new Material(renderer.sharedMaterial)
+                        {
+                            shader = Shader.Find("Budget/PBRGraph-Universal"),
+                            enableInstancing = true
+                        };
+                        materials.Add(renderer.sharedMaterial, material);
+
+                        _context.AssetContext.AddObjectToAsset($"Budget_{material.name}", material);
+                    }
                     var authoring = renderer.gameObject.AddComponent<SkinnedMeshRendererAuthoring>();
+                    authoring.Material = material;
                     authoring.Skin = skinAuthoring;
                 }
 

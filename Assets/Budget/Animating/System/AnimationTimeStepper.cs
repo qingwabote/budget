@@ -4,7 +4,7 @@ using Unity.Mathematics;
 
 namespace Budget
 {
-    partial struct AnimationTimeStepper : ISystem
+    public partial struct AnimationTimeStepper : ISystem
     {
         [BurstCompile]
         public void OnUpdate(ref SystemState state)

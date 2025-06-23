@@ -5,8 +5,7 @@ using UnityEngine;
 
 namespace Budget
 {
-    [UpdateInGroup(typeof(LateSimulationSystemGroup))]
-    partial struct Batcher : ISystem
+    public partial struct Batcher : ISystem
     {
         private static readonly TransientPool<Batch> s_Queue = new();
         private static readonly MaterialPropertyBlock s_MPB = new();
@@ -29,6 +28,11 @@ namespace Budget
             foreach (var modelCompont in SystemAPI.Query<ModelComponet>())
             {
                 var model = modelCompont.Value;
+                if (!modelCompont.Initialized)
+                {
+                    model.Initialize(ref state);
+                    modelCompont.Initialized = true;
+                }
 
                 int key = model.Hash();
                 Batch batch;
