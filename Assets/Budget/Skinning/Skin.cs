@@ -25,7 +25,7 @@ namespace Budget
             public Store(int stride)
             {
                 m_Stride = stride;
-                m_View = new TextureView(1);
+                m_View = new TextureView();
             }
 
             virtual public int Add()

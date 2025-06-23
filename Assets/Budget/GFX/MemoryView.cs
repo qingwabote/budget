@@ -15,7 +15,6 @@ namespace Budget
 
         public MemoryView(int length)
         {
-            // capacity = math.max(length, capacity);
             m_Length = length;
         }
 

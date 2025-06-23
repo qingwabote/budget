@@ -16,11 +16,10 @@ namespace Budget
 
         public readonly Texture2D Texture;
 
-        public TextureView(int length = 0) : this(Length2extent(length), TextureFormat.RGBAFloat) { }
-
-        private TextureView(int extent, TextureFormat format) : base(extent * extent * 4)
+        public TextureView(int length = 0, int capacity = 16) : base(length)
         {
-            Texture = new Texture2D(extent, extent, format, false, true);
+            var extent = Length2extent(math.max(length, capacity));
+            Texture = new Texture2D(extent, extent, TextureFormat.RGBAFloat, false, true);
             m_Source = Texture.GetPixelData<float>(0);
         }
 
