@@ -9834,7 +9834,7 @@
 }
 
 {
-    "m_SGVersion": 1,
+    "m_SGVersion": 2,
     "m_Type": "UnityEditor.ShaderGraph.TransformNode",
     "m_ObjectId": "20316d20817f4522ac33d753759d9116",
     "m_Group": {
