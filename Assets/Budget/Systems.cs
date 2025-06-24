@@ -1,22 +1,23 @@
 using Unity.Entities;
+using Unity.Transforms;
 
 namespace Budget
 {
-    [UpdateInGroup(typeof(LateSimulationSystemGroup))]
+    [UpdateInGroup(typeof(TransformSystemGroup))]
     public partial struct SkinnedAnimationFilter : ISystem { }
 
-    [UpdateInGroup(typeof(LateSimulationSystemGroup)), UpdateAfter(typeof(SkinnedAnimationFilter))]
+    [UpdateInGroup(typeof(TransformSystemGroup)), UpdateBefore(typeof(LocalToWorldSystem)), UpdateAfter(typeof(SkinnedAnimationFilter))]
     public partial class AnimationSamplerGroup : ComponentSystemGroup { }
 
-    [UpdateInGroup(typeof(LateSimulationSystemGroup)), UpdateAfter(typeof(AnimationSamplerGroup))]
+    [UpdateInGroup(typeof(TransformSystemGroup)), UpdateAfter(typeof(AnimationSamplerGroup))]
     public partial struct AnimationTimeStepper : ISystem { }
 
-    [UpdateInGroup(typeof(LateSimulationSystemGroup)), UpdateAfter(typeof(AnimationSamplerGroup))]
+    [UpdateInGroup(typeof(TransformSystemGroup)), UpdateAfter(typeof(AnimationSamplerGroup))]
     public partial struct SkinnedAnimationUpdater : ISystem { }
 
-    [UpdateInGroup(typeof(LateSimulationSystemGroup)), UpdateAfter(typeof(SkinnedAnimationUpdater))]
+    [UpdateInGroup(typeof(TransformSystemGroup)), UpdateAfter(typeof(SkinnedAnimationUpdater))]
     public partial struct SkinnedAnimationUploader : ISystem { }
 
-    [UpdateInGroup(typeof(LateSimulationSystemGroup)), UpdateAfter(typeof(SkinnedAnimationUploader))]
+    [UpdateInGroup(typeof(LateSimulationSystemGroup))]
     public partial struct Batcher : ISystem { }
 }
