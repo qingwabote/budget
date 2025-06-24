@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Budget;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
@@ -63,7 +64,8 @@ public partial struct SkinningSpawnSystem : ISystem
             for (int i = 0; i < spawn.Num; i++)
             {
                 var entity = state.EntityManager.Instantiate(spawn.Prefab);
-                SystemAPI.GetComponentRW<LocalTransform>(entity).ValueRW.Position = new float3(m_Random.NextInt(-3, 3), 0, m_Random.NextInt(-6, 6));
+                SystemAPI.GetComponentRW<LocalTransform>(entity).ValueRW.Position = new float3(m_Random.NextInt(-3, 4), 0, m_Random.NextInt(-6, 7));
+                SystemAPI.GetComponentRW<Budget.AnimationState>(entity).ValueRW.ClipIndex = m_Random.NextInt(0, 3);
             }
             state.EntityManager.RemoveComponent<SkinningSpawn.Initializer>(skinningSpawnEntity);
         }
