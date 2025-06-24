@@ -47,7 +47,7 @@ public partial struct SkinningSpawnSystem : ISystem
 
     public void OnCreate(ref SystemState state)
     {
-        m_Random = new Unity.Mathematics.Random(1);
+        m_Random = new Unity.Mathematics.Random(2);
     }
 
     public void OnUpdate(ref SystemState state)

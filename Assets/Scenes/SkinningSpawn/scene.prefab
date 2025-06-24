@@ -238,7 +238,8 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: -5644133064174452605, guid: 397945a2055b5b4428d2f7afbb29ebb4, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents:
@@ -246,6 +247,10 @@ PrefabInstance:
         type: 3}
       insertIndex: -1
       addedObject: {fileID: 2605087075096219419}
+    - targetCorrespondingSourceObject: {fileID: 8128668236925612103, guid: 397945a2055b5b4428d2f7afbb29ebb4,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 3803091586960907009}
   m_SourcePrefab: {fileID: -5645937942226959685, guid: 397945a2055b5b4428d2f7afbb29ebb4,
     type: 3}
 --- !u!1 &1979559698889479188 stripped
@@ -271,3 +276,22 @@ MonoBehaviour:
   - {fileID: 6057903353056789472, guid: 397945a2055b5b4428d2f7afbb29ebb4, type: 3}
   - {fileID: -4684034989090087637, guid: 397945a2055b5b4428d2f7afbb29ebb4, type: 3}
   ClipIndex: 0
+--- !u!111 &3803091586960907009
+Animation:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1979559698889479188}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Animation: {fileID: -8945691123924629249, guid: 397945a2055b5b4428d2f7afbb29ebb4,
+    type: 3}
+  m_Animations:
+  - {fileID: -8945691123924629249, guid: 397945a2055b5b4428d2f7afbb29ebb4, type: 3}
+  - {fileID: 8349542763059015795, guid: 397945a2055b5b4428d2f7afbb29ebb4, type: 3}
+  - {fileID: -7551964380084998518, guid: 397945a2055b5b4428d2f7afbb29ebb4, type: 3}
+  m_WrapMode: 0
+  m_PlayAutomatically: 1
+  m_AnimatePhysics: 0
+  m_CullingType: 0

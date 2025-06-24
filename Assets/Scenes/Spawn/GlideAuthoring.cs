@@ -29,24 +29,22 @@ public partial struct GlideSystem : ISystem
 
     public void OnCreate(ref SystemState state)
     {
-        _ProfileEntry = Profile.DefineEntry("Glide");
+        // _ProfileEntry = Profile.DefineEntry("Glide");
 
         _Random = new Unity.Mathematics.Random(1);
-
-        state.RequireForUpdate<Glide>();
     }
 
     [BurstCompile]
     public void OnUpdate(ref SystemState state)
     {
-        Profile.Begin(_ProfileEntry);
+        // Profile.Begin(_ProfileEntry);
 
         foreach (var (transform, dirft) in SystemAPI.Query<RefRW<LocalTransform>, RefRW<Glide>>())
         {
             var d = dirft.ValueRW.destination - transform.ValueRW.Position;
             if (math.length(d) < 1)
             {
-                dirft.ValueRW.destination = new float3(_Random.NextInt(-3, 3), 0, _Random.NextInt(-6, 6));
+                dirft.ValueRW.destination = new float3(_Random.NextInt(-3, 4), 0, _Random.NextInt(-6, 7));
                 continue;
             }
 
@@ -69,7 +67,7 @@ public partial struct GlideSystem : ISystem
         //     Debug.Log("IsBursted false");
         // }
 
-        Profile.End(_ProfileEntry);
+        // Profile.End(_ProfileEntry);
     }
 
     // https://discussions.unity.com/t/when-where-and-why-to-put-burstcompile-with-mild-under-the-hood-explanation/896228

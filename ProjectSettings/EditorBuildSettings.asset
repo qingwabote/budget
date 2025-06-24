@@ -5,7 +5,7 @@ EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Scenes:
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/Animation.unity
     guid: c0f958507339984488e3726a57bc1bd8
   - enabled: 0
@@ -14,4 +14,7 @@ EditorBuildSettings:
   - enabled: 0
     path: Assets/Scenes/SpawnTraditional.unity
     guid: dd4f9dada0801684f933d1919cc4a98c
+  - enabled: 1
+    path: Assets/Scenes/SkinningSpawn.unity
+    guid: 8ef5032fb6ce3c144a640cfb8a0d5bcf
   m_configObjects: {}

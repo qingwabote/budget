@@ -28,9 +28,18 @@ namespace Budget
 
     public partial struct SkinnedAnimationUpdater : ISystem
     {
-        // [BurstCompile]
+        private int m_ProfileEntry;
+
+        public void OnCreate(ref SystemState state)
+        {
+            m_ProfileEntry = Profile.DefineEntry("SkinUpdate");
+        }
+
+        [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
+            Profile.Begin(m_ProfileEntry);
+
             foreach (var (nodes, joint) in SystemAPI.Query<DynamicBuffer<SkinNode>, RefRW<SkinJoint>>())
             {
                 var matrixes = new NativeArray<float4x4>(nodes.Length, Allocator.Temp);
@@ -60,17 +69,30 @@ namespace Budget
                     }
                 }
             }
+
+            Profile.End(m_ProfileEntry);
         }
     }
 
     public partial struct SkinnedAnimationUploader : ISystem
     {
+        private int m_ProfileEntry;
+
+        public void OnCreate(ref SystemState state)
+        {
+            m_ProfileEntry = Profile.DefineEntry("SkinUpload");
+        }
+
         public void OnUpdate(ref SystemState state)
         {
+            Profile.Begin(m_ProfileEntry);
+
             foreach (var skin in SystemAPI.Query<SkinInfoComponent>())
             {
                 skin.Value.Store.Update();
             }
+
+            Profile.End(m_ProfileEntry);
         }
     }
 }

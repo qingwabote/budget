@@ -12,17 +12,17 @@ namespace Budget
     [UpdateInGroup(typeof(AnimationSamplerGroup))]
     partial struct Solo : ISystem
     {
-        private int _ProfileEntry;
+        private int m_ProfileEntry;
 
         public void OnCreate(ref SystemState state)
         {
-            _ProfileEntry = Profile.DefineEntry("Solo");
+            m_ProfileEntry = Profile.DefineEntry("Solo");
         }
 
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
-            Profile.Begin(_ProfileEntry);
+            Profile.Begin(m_ProfileEntry);
 
             foreach (var (animation, clipBingings, channelTargets, entity) in SystemAPI.Query<RefRO<AnimationState>, DynamicBuffer<ClipBinging>, DynamicBuffer<ChannelTarget>>().WithEntityAccess())
             {
@@ -66,10 +66,9 @@ namespace Budget
                             throw new Exception($"unsupported path: ${channel.path}");
                     }
                 }
-                result.Dispose();
             }
 
-            Profile.End(_ProfileEntry);
+            Profile.End(m_ProfileEntry);
         }
     }
 }

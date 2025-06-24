@@ -35,6 +35,7 @@ public struct Profile
     {
         ref Entry ent = ref _Entries.Data.ElementAt(entry);
         ent.Value = value;
+        ent.Delta = -1;
     }
 
     public static void Begin(int entry)
@@ -83,18 +84,17 @@ public class Profiler : MonoBehaviour
         {
             ref var entry = ref entries.ElementAt(i);
             name = entry.Name.ToString().PadRight(PadRight);
-            if (entry.Delta > 0)
+            if (entry.Delta == -1)
+            {
+                string value = entry.Value.ToString().PadLeft(PadLeft);
+                text += $"\n{name} {value}";
+            }
+            else
             {
                 string ms = (entry.Delta / _frames * 1000).ToString("F3").PadLeft(PadLeft);
                 text += $"\n{name} {ms}ms";
                 entry.Delta = 0;
             }
-            else
-            {
-                string value = entry.Value.ToString().PadLeft(PadLeft);
-                text += $"\n{name} {value}";
-            }
-
         }
 
         _label.text = text;
