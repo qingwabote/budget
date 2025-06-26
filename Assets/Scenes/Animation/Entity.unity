@@ -326,6 +326,11 @@ PrefabInstance:
       propertyPath: m_AABB.m_Extent.z
       value: 0.45222682
       objectReference: {fileID: 0}
+    - target: {fileID: 7127581210704599043, guid: 397945a2055b5b4428d2f7afbb29ebb4,
+        type: 3}
+      propertyPath: Baking
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 8128668236925612103, guid: 397945a2055b5b4428d2f7afbb29ebb4,
         type: 3}
       propertyPath: m_Name

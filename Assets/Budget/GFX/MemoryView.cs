@@ -4,9 +4,9 @@ namespace Budget
 {
     public abstract class MemoryView<T> where T : unmanaged
     {
-        protected NativeArray<T> m_Source;
+        protected NativeReference<NativeArray<T>> m_Source = new(Allocator.Persistent);
 
-        public ref NativeArray<T> Source => ref m_Source;
+        public ref NativeReference<NativeArray<T>> Source => ref m_Source;
 
         private int m_Length;
         public int Length => m_Length;
@@ -18,6 +18,7 @@ namespace Budget
             m_Length = length;
         }
 
+        // FIXME: return both source and offset
         public int AddBlock(int length)
         {
             var offset = m_Length;

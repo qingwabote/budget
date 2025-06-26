@@ -5,31 +5,17 @@ using UnityEngine;
 
 namespace Budget
 {
-    public struct ChannelTarget : IBufferElementData
+    public struct ChannelTarget : IBufferElementData, IEnableableComponent
     {
         public Entity Value;
     }
 
-    public struct ClipBinging : IBufferElementData, IEnableableComponent
+    public struct ClipBinging : IBufferElementData
     {
         public BlobAssetReference<Clip> Blob;
+        public float Duration;
         public int TargetIndex;
         public int Outputs;
-
-        public float Duration
-        {
-            get
-            {
-                float duration = 0;
-                ref var channels = ref Blob.Value.channels;
-                for (int i = 0; i < channels.Length; i++)
-                {
-                    ref var channel = ref channels[i];
-                    duration = math.max(duration, channel.input[^1]);
-                }
-                return duration;
-            }
-        }
     }
 
     class AnimationAuthoring : MonoBehaviour
@@ -67,10 +53,14 @@ namespace Budget
             foreach (var clip in authoring.Clips)
             {
                 ref BlobArray<Channel> channels = ref clip.Blob.Value.channels;
+                // TODO: put duration and outputs into blob
+                float duration = 0;
                 int outputs = 0;
                 for (int i = 0; i < channels.Length; i++)
                 {
-                    switch (channels[i].path)
+                    ref var channel = ref channels[i];
+                    duration = math.max(duration, channel.input[^1]);
+                    switch (channel.path)
                     {
                         case ChannelPath.TRANSLATION:
                             outputs += 3;
@@ -82,13 +72,14 @@ namespace Budget
                             outputs += 3;
                             break;
                         default:
-                            throw new Exception($"unsupported path: {channels[i].path}");
+                            throw new Exception($"unsupported path: {channel.path}");
                     }
                 }
 
                 clipBindings.Add(new ClipBinging
                 {
                     Blob = clip.Blob,
+                    Duration = duration,
                     TargetIndex = channelTargets.Length,
                     Outputs = outputs
                 });

@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
@@ -10,18 +12,98 @@ namespace Budget
 {
     public partial struct SkinnedAnimationFilter : ISystem
     {
-        // [BurstCompile]
+        private readonly struct ClipFrame : IEquatable<ClipFrame>
+        {
+            private readonly BlobAssetReference<Clip> m_Clip;
+            private readonly int m_Frame;
+
+            public ClipFrame(BlobAssetReference<Clip> clip, int frame)
+            {
+                m_Clip = clip;
+                m_Frame = frame;
+            }
+
+            public override int GetHashCode()
+            {
+                return HashCode.Combine(m_Clip.GetHashCode(), m_Frame);
+            }
+
+            public bool Equals(ClipFrame other)
+            {
+                return m_Clip == other.m_Clip && m_Frame == other.m_Frame;
+            }
+        }
+
+        private static readonly Dictionary<Skin, int> s_SkinOffsets = new();
+        private static readonly NativeHashMap<ClipFrame, int> s_ClipFrameOffsets = new(1024, Allocator.Persistent);
+
         public void OnUpdate(ref SystemState state)
         {
-            foreach (var (info, joint) in SystemAPI.Query<SkinInfoComponent, RefRW<SkinJoint>>().WithOptions(EntityQueryOptions.IgnoreComponentEnabledState))
+            // foreach (var (infoComponent, joint) in SystemAPI.Query<SkinInfoComponent, RefRW<SkinJoint>>().WithNone<AnimationState>())
+            // {
+            //     var info = infoComponent.Value;
+            //     if (info.Baking)
+            //     {
+            //     }
+            //     else
+            //     {
+            //         var offset = info.Store.Add();
+            //         // memory may be reallocated after Add();
+            //         unsafe
+            //         {
+            //             joint.ValueRW.DataView = (long)(info.Store.Source + offset);
+            //         }
+            //         info.Offset = offset;
+            //     }
+            // }
+
+            foreach (var (infoComponent, joint, anim, clips, entity) in SystemAPI.Query<SkinInfoComponent, RefRW<SkinJoint>, RefRO<AnimationState>, DynamicBuffer<ClipBinging>>().WithEntityAccess().WithOptions(EntityQueryOptions.IgnoreComponentEnabledState))
             {
-                var offset = info.Value.Store.Add();
-                // memory may be reallocated after Add();
-                unsafe
+                var info = infoComponent.Value;
+                int offset;
+                if (info.Baking)
                 {
-                    joint.ValueRW.Matrices = (long)(info.Value.Store.Source + offset);
+                    var clip = clips.ElementAt(anim.ValueRO.ClipIndex);
+                    var ratio = anim.ValueRO.Time / clip.Duration;
+                    var frame = (int)math.ceil(ratio * (clip.Duration * 60 - 1));
+                    var key = new ClipFrame(clip.Blob, frame);
+                    if (s_ClipFrameOffsets.TryGetValue(key, out offset))
+                    {
+                        SystemAPI.SetBufferEnabled<ChannelTarget>(entity, false);
+                    }
+                    else
+                    {
+                        offset = info.Store.Add();
+                        // memory may be reallocated after Add();
+                        unsafe
+                        {
+                            joint.ValueRW.DataView.Value = new()
+                            {
+                                Data = (long)info.Store.Source,
+                                Offset = offset
+                            };
+                        }
+                        s_ClipFrameOffsets.Add(key, offset);
+
+                        SystemAPI.SetBufferEnabled<ChannelTarget>(entity, true);
+                    }
                 }
-                info.Value.Offset = offset;
+                else
+                {
+                    offset = info.Store.Add();
+                    // memory may be reallocated after Add();
+                    unsafe
+                    {
+                        joint.ValueRW.DataView.Value = new()
+                        {
+                            Data = (long)info.Store.Source,
+                            Offset = offset
+                        };
+                    }
+
+                    SystemAPI.SetBufferEnabled<ChannelTarget>(entity, true);
+                }
+                info.Offset = offset;
             }
         }
     }
@@ -40,20 +122,26 @@ namespace Budget
         {
             Profile.Begin(m_ProfileEntry);
 
-            foreach (var (nodes, joint) in SystemAPI.Query<DynamicBuffer<SkinNode>, RefRW<SkinJoint>>())
+            foreach (var (nodes, joint) in SystemAPI.Query<DynamicBuffer<SkinNode>, RefRO<SkinJoint>>())
             {
-                var matrixes = new NativeArray<float4x4>(nodes.Length, Allocator.Temp);
+                var DataView = joint.ValueRO.DataView.Value;
+                if (DataView.Data == 0)
+                {
+                    continue;
+                }
+
+                var worlds = new NativeArray<float4x4>(nodes.Length, Allocator.Temp);
                 for (int i = 0; i < nodes.Length; i++)
                 {
                     ref var node = ref nodes.ElementAt(i);
                     var local = SystemAPI.GetComponentRO<LocalTransform>(node.Target);
                     if (node.Parent == -1)
                     {
-                        matrixes[i] = float4x4.TRS(local.ValueRO.Position, local.ValueRO.Rotation, local.ValueRO.Scale);
+                        worlds[i] = float4x4.TRS(local.ValueRO.Position, local.ValueRO.Rotation, local.ValueRO.Scale);
                     }
                     else
                     {
-                        matrixes[i] = math.mul(matrixes[node.Parent], float4x4.TRS(local.ValueRO.Position, local.ValueRO.Rotation, local.ValueRO.Scale));
+                        worlds[i] = math.mul(worlds[node.Parent], float4x4.TRS(local.ValueRO.Position, local.ValueRO.Rotation, local.ValueRO.Scale));
                     }
                 }
 
@@ -61,11 +149,12 @@ namespace Budget
                 var jointOffset = joint.ValueRO.Index;
                 unsafe
                 {
-                    var JointSource = (float4x4*)joint.ValueRO.Matrices;
+                    var Data = (NativeArray<float>*)DataView.Data;
+                    var matrices = (float4x4*)((float*)Data->GetUnsafePtr() + DataView.Offset);
                     for (int i = 0; i < inverseBindMatrices.Length; i++)
                     {
-                        var res = math.mul(matrixes[i + jointOffset], inverseBindMatrices[i]);
-                        UnsafeUtility.MemCpy(JointSource + i, &res, UnsafeUtility.SizeOf<float4x4>());
+                        var res = math.mul(worlds[i + jointOffset], inverseBindMatrices[i]);
+                        UnsafeUtility.MemCpy(matrices + i, &res, UnsafeUtility.SizeOf<float4x4>());
                     }
                 }
             }

@@ -2,35 +2,36 @@ namespace Budget
 {
     using UnityEngine;
 
-    public class Transient
+    public struct Transient<T>
     {
-        private readonly int _mReset;
+        private readonly T m_Reset;
 
-        private int _mVersion = Time.frameCount;
+        private int m_Version;
 
-        private int _mValue;
-        public int Value
+        private T m_Value;
+        public T Value
         {
             get
             {
-                if (_mVersion != Time.frameCount)
+                if (m_Version != Time.frameCount)
                 {
-                    return _mReset;
+                    return m_Reset;
                 }
-                return _mValue;
+                return m_Value;
             }
 
             set
             {
-                _mValue = value;
-                _mVersion = Time.frameCount;
+                m_Value = value;
+                m_Version = Time.frameCount;
             }
         }
 
-        public Transient(int value, int reset)
+        public Transient(T value, T reset)
         {
-            _mValue = value;
-            _mReset = reset;
+            m_Value = value;
+            m_Reset = reset;
+            m_Version = Time.frameCount;
         }
     }
 }

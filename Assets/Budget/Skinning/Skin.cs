@@ -1,4 +1,5 @@
 using System;
+using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Entities.Serialization;
@@ -18,7 +19,7 @@ namespace Budget
         {
             protected readonly TextureView m_View;
             public Texture2D Texture => m_View.Texture;
-            public float* Source => (float*)m_View.Source.GetUnsafePtr();
+            public NativeArray<float>* Source => m_View.Source.GetUnsafePtr();
 
             private readonly int m_Stride;
 
@@ -41,7 +42,7 @@ namespace Budget
 
         public class TransientStore : Store
         {
-            private readonly Transient m_reset = new(0, 0);
+            private Transient<int> m_reset = new(0, 0);
 
             public TransientStore(int stride) : base(stride) { }
 
@@ -61,10 +62,7 @@ namespace Budget
         {
             get
             {
-                if (m_Persistent == null)
-                {
-                    m_Persistent = new Store(Joints.Length);
-                }
+                m_Persistent ??= new Store(Joints.Length);
                 return m_Persistent;
             }
         }
@@ -74,10 +72,7 @@ namespace Budget
         {
             get
             {
-                if (m_Transient == null)
-                {
-                    m_Transient = new TransientStore(Joints.Length);
-                }
+                m_Transient ??= new TransientStore(Joints.Length);
                 return m_Transient;
             }
         }

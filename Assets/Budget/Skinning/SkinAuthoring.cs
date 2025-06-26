@@ -31,13 +31,21 @@ namespace Budget
         public int Parent;
     }
 
-    public unsafe struct SkinJoint : IComponentData
+    public struct SkinJointDataView
     {
+        public long Data;
+        public int Offset;
+    }
+
+    public struct SkinJoint : IComponentData
+    {
+        public BlobAssetReference<InverseBindMatrices> InverseBindMatrices;
+
         public int Index;
 
-        public long Matrices;
+        public Transient<SkinJointDataView> DataView;
 
-        public BlobAssetReference<InverseBindMatrices> InverseBindMatrices;
+        public int DataOffset;
     }
 
     class SkinBaker : Baker<SkinAuthoring>

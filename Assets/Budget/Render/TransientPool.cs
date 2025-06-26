@@ -8,7 +8,7 @@ namespace Budget
         private readonly List<T> m_Data = new();
         public IReadOnlyList<T> Data => m_Data;
 
-        private readonly Transient m_Count = new(0, 0);
+        private Transient<int> m_Count = new(0, 0);
         public int Count => m_Count.Value;
 
         private readonly Func<T> m_Creator;

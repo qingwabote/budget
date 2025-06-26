@@ -1,4 +1,4 @@
-using Unity.Collections.LowLevel.Unsafe;
+using Unity.Collections;
 using Unity.Mathematics;
 using UnityEngine;
 
@@ -20,7 +20,7 @@ namespace Budget
         {
             var extent = Length2extent(math.max(length, capacity));
             Texture = new Texture2D(extent, extent, TextureFormat.RGBAFloat, false, true);
-            m_Source = Texture.GetPixelData<float>(0);
+            m_Source.Value = Texture.GetPixelData<float>(0);
         }
 
         protected override void Reserve(int capacity)
@@ -30,19 +30,16 @@ namespace Budget
             {
                 return;
             }
-            // FIXME: UB - accessing old memory after Reinitialize
-            unsafe
+
+            var copy = new NativeArray<float>(Length, Allocator.Temp);
+            NativeArray<float>.Copy(m_Source.Value, 0, copy, 0, Length);
+            if (!Texture.Reinitialize(extent, extent))
             {
-                var Source = m_Source.GetUnsafePtr();
-                var Length = m_Source.Length;
-                if (!Texture.Reinitialize(extent, extent))
-                {
-                    Debug.Log("Texture.Reinitialize failed!");
-                    return;
-                }
-                m_Source = Texture.GetPixelData<float>(0);
-                UnsafeUtility.MemCpy(m_Source.GetUnsafePtr(), Source, Length);
+                Debug.Log("Texture.Reinitialize failed!");
+                return;
             }
+            m_Source.Value = Texture.GetPixelData<float>(0);
+            NativeArray<float>.Copy(copy, 0, m_Source.Value, 0, Length);
         }
 
         protected override void Upload()
