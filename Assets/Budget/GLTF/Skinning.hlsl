@@ -3,9 +3,9 @@
 
 void SkinningDeform_float(float3 Pos, float4 Joints, float4 Weights, UnityTexture2D JointMap, float Width, float Offset, out float3 Out)
 {
-    int width = int(Width);
-    int4 joints = int4(Joints);
-    int offset = int(Offset);
+    uint4 joints = uint4(Joints);
+    uint width = uint(Width);
+    uint offset = uint(Offset);
 
     float4x4 mat = float4x4(
         0,0,0,0,
@@ -16,18 +16,18 @@ void SkinningDeform_float(float3 Pos, float4 Joints, float4 Weights, UnityTextur
 
     for (int n = 0; n < 4; n++)
     {
-        int i = joints[n] * 4 + offset / 4;
-        int y = i / width;
-        int x = i % width;
+        uint i = joints[n] * 4u + offset / 4u;
+        uint y = i / width;
+        uint x = i % width;
 
         float4 rows[4];
         for(int j = 0; j < 4; j++) 
         {
             rows[j] = JointMap.Load(int3(x, y, 0));
-            if (x == width - 1)
+            if (x == width - 1u)
             {
                 y++;
-                x = 0;
+                x = 0u;
             }
             else
             {
