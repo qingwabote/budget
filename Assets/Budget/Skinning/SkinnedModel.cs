@@ -16,7 +16,7 @@ namespace Budget
 
 
         public static readonly int JOINTS = Shader.PropertyToID("_JointMap");
-        public static readonly int OFFSET = Shader.PropertyToID("_JointMapOffset");
+        public static readonly int OFFSET = Shader.PropertyToID("_JointOffset");
 
         public SkinInfo Skin;
 

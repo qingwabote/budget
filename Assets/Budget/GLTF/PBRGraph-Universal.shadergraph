@@ -7768,7 +7768,7 @@
     "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
     "m_ObjectId": "11488e76487942edb2e37f2e6fe2684a",
     "m_Id": 0,
-    "m_DisplayName": "Joint Map Offset",
+    "m_DisplayName": "Joint Offset",
     "m_SlotType": 1,
     "m_Hidden": false,
     "m_ShaderOutputName": "Out",
@@ -33088,11 +33088,11 @@
     "m_Guid": {
         "m_GuidSerialized": "9f238f75-ee6e-4144-980a-5627186e84cd"
     },
-    "m_Name": "Joint Map Offset",
+    "m_Name": "Joint Offset",
     "m_DefaultRefNameVersion": 1,
-    "m_RefNameGeneratedByDisplayName": "Joint Map Offset",
-    "m_DefaultReferenceName": "_Joint_Map_Offset",
-    "m_OverrideReferenceName": "_JointMapOffset",
+    "m_RefNameGeneratedByDisplayName": "Joint Offset",
+    "m_DefaultReferenceName": "_Joint_Offset",
+    "m_OverrideReferenceName": "_JointOffset",
     "m_GeneratePropertyBlock": false,
     "m_UseCustomSlotLabel": false,
     "m_CustomSlotLabel": "",
@@ -36833,10 +36833,10 @@
             "m_Id": "20d582c282a9450484c2d45dada8e8a9"
         },
         {
-            "m_Id": "d549c3f44a324bdea4c153305ef49c12"
+            "m_Id": "ee9203ca571349f9b3e80fd42e9ccd6d"
         },
         {
-            "m_Id": "ee9203ca571349f9b3e80fd42e9ccd6d"
+            "m_Id": "d549c3f44a324bdea4c153305ef49c12"
         }
     ]
 }
