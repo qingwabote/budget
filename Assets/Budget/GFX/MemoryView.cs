@@ -18,7 +18,6 @@ namespace Budget
             m_Length = length;
         }
 
-        // FIXME: return both source and offset
         public int AddBlock(int length)
         {
             var offset = m_Length;

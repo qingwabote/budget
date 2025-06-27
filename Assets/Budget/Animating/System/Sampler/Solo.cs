@@ -33,13 +33,13 @@ namespace Budget
                     clipBinging.Blob.Value.Sample((float*)result.GetUnsafePtr(), animation.ValueRO.Time);
                 }
 
-                ref var channels = ref clipBinging.Blob.Value.channels;
+                ref var channels = ref clipBinging.Blob.Value.Channels;
                 var offset = 0;
                 for (int i = 0; i < channels.Length; i++)
                 {
                     ref var channel = ref channels[i];
                     var target = channelTargets.ElementAt(clipBinging.TargetIndex + i).Value;
-                    switch (channel.path)
+                    switch (channel.Path)
                     {
                         case ChannelPath.TRANSLATION:
                             if (target != Entity.Null)
@@ -63,7 +63,7 @@ namespace Budget
                             offset += 3;
                             break;
                         default:
-                            throw new Exception($"unsupported path: ${channel.path}");
+                            throw new Exception($"unsupported path: ${channel.Path}");
                     }
                 }
             }

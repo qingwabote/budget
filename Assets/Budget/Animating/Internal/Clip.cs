@@ -1,34 +1,15 @@
 using System;
+using System.Runtime.InteropServices;
 using Unity.Entities;
 using Unity.Mathematics;
 
 namespace Budget
 {
-    public unsafe struct Vec3
-    {
-        public fixed float data[3];
+    [StructLayout(LayoutKind.Sequential, Size = 12)]
+    public unsafe struct Vec3 { }
 
-        public ref float this[int i]
-        {
-            get
-            {
-                return ref data[i];
-            }
-        }
-    }
-
-    public unsafe struct Quat
-    {
-        public fixed float data[4];
-
-        public ref float this[int i]
-        {
-            get
-            {
-                return ref data[i];
-            }
-        }
-    }
+    [StructLayout(LayoutKind.Sequential, Size = 16)]
+    public unsafe struct Quat { }
 
     public enum ChannelPath
     {
@@ -40,30 +21,30 @@ namespace Budget
 
     public struct Channel
     {
-        public ChannelPath path;
-        public BlobArray<float> input;
-        public BlobArray<float> output;
+        public ChannelPath Path;
+        public BlobArray<float> Input;
+        public BlobArray<float> Output;
 
         public readonly static float EPSILON = 1e-6f;
 
         public int Seek(float value)
         {
-            if (value < input[0])
+            if (value < Input[0])
             {
                 return 0;
             }
 
-            if (value > input[input.Length - 1])
+            if (value > Input[Input.Length - 1])
             {
-                return input.Length - 1;
+                return Input.Length - 1;
             }
 
             int head = 0;
-            int tail = input.Length - 1;
+            int tail = Input.Length - 1;
             while (head <= tail)
             {
                 int mid = (head + tail) >> 1;
-                float res = input[mid];
+                float res = Input[mid];
                 if ((value + EPSILON) < res)
                 {
                     tail = mid - 1;
@@ -133,67 +114,67 @@ namespace Budget
             result[3] = scale0 * a[3] + scale1 * bw;
         }
 
-        public unsafe void Vec3(Vec3* result, Vec3* output, float time)
+        public unsafe void Vec3(Vec3* output, Vec3* channel_output, float time)
         {
             int index = Seek(time);
             if (index >= 0)
             {
-                *result = *(output + index);
+                *output = *(channel_output + index);
             }
             else
             {
                 int next = ~index;
                 int prev = next - 1;
 
-                float t = (time - input[prev]) / (input[next] - input[prev]);
-                Lerp((float*)result, (float*)(output + prev), (float*)(output + next), t);
+                float t = (time - Input[prev]) / (Input[next] - Input[prev]);
+                Lerp((float*)output, (float*)(channel_output + prev), (float*)(channel_output + next), t);
             }
         }
 
-        public unsafe void Quat(Quat* result, Quat* output, float time)
+        public unsafe void Quat(Quat* output, Quat* channel_output, float time)
         {
             int index = Seek(time);
             if (index >= 0)
             {
-                *result = *(output + index);
+                *output = *(channel_output + index);
             }
             else
             {
                 int next = ~index;
                 int prev = next - 1;
 
-                float t = (time - input[prev]) / (input[next] - input[prev]);
-                Slerp((float*)result, (float*)(output + prev), (float*)(output + next), t);
+                float t = (time - Input[prev]) / (Input[next] - Input[prev]);
+                Slerp((float*)output, (float*)(channel_output + prev), (float*)(channel_output + next), t);
             }
         }
 
-        public unsafe int Sample(float* result, float time)
+        public unsafe int Sample(float* output, float time)
         {
-            switch (path)
+            switch (Path)
             {
                 case ChannelPath.TRANSLATION:
                 case ChannelPath.SCALE:
-                    Vec3((Vec3*)result, (Vec3*)output.GetUnsafePtr(), time);
+                    Vec3((Vec3*)output, (Vec3*)this.Output.GetUnsafePtr(), time);
                     return 3;
                 case ChannelPath.ROTATION:
-                    Quat((Quat*)result, (Quat*)output.GetUnsafePtr(), time);
+                    Quat((Quat*)output, (Quat*)this.Output.GetUnsafePtr(), time);
                     return 4;
 
                 default:
-                    throw new Exception($"unsupported channel path: {path}");
+                    throw new Exception($"unsupported channel path: {Path}");
             }
         }
     }
 
     public struct Clip
     {
-        public BlobArray<Channel> channels;
+        public BlobArray<Channel> Channels;
 
-        public unsafe void Sample(float* result, float time)
+        public unsafe void Sample(float* output, float time)
         {
-            for (int i = 0; i < channels.Length; i++)
+            for (int i = 0; i < Channels.Length; i++)
             {
-                result += channels[i].Sample(result, time);
+                output += Channels[i].Sample(output, time);
             }
         }
     }

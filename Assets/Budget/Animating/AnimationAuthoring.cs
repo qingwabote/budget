@@ -52,15 +52,14 @@ namespace Budget
             var clipBindings = AddBuffer<ClipBinging>(entity);
             foreach (var clip in authoring.Clips)
             {
-                ref BlobArray<Channel> channels = ref clip.Blob.Value.channels;
-                // TODO: put duration and outputs into blob
+                ref BlobArray<Channel> channels = ref clip.Blob.Value.Channels;
                 float duration = 0;
                 int outputs = 0;
                 for (int i = 0; i < channels.Length; i++)
                 {
                     ref var channel = ref channels[i];
-                    duration = math.max(duration, channel.input[^1]);
-                    switch (channel.path)
+                    duration = math.max(duration, channel.Input[^1]);
+                    switch (channel.Path)
                     {
                         case ChannelPath.TRANSLATION:
                             outputs += 3;
@@ -72,7 +71,7 @@ namespace Budget
                             outputs += 3;
                             break;
                         default:
-                            throw new Exception($"unsupported path: {channel.path}");
+                            throw new Exception($"unsupported path: {channel.Path}");
                     }
                 }
 

@@ -4,11 +4,8 @@ using GLTF.Schema;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
-using Unity.Mathematics;
-using Unity.Transforms;
 using UnityEngine;
 using UnityGLTF;
-using UnityGLTF.Extensions;
 using UnityGLTF.Plugins;
 
 namespace Budget.GLTF
@@ -38,7 +35,7 @@ namespace Budget.GLTF
 
             var builder = new BlobBuilder(Allocator.Temp);
             ref Clip clip = ref builder.ConstructRoot<Clip>();
-            BlobBuilderArray<Channel> channels = builder.Allocate(ref clip.channels, gltfChanndels.Count);
+            BlobBuilderArray<Channel> channels = builder.Allocate(ref clip.Channels, gltfChanndels.Count);
 
             var nodes = new string[gltfChanndels.Count];
             for (int i = 0; i < gltfChanndels.Count; i++)
@@ -49,7 +46,7 @@ namespace Budget.GLTF
 
                 var input_accessor = gltfChanndel.Sampler.Value.Input.Value;
                 var input_length = input_accessor.Count;
-                BlobBuilderArray<float> input = builder.Allocate(ref channels[i].input, (int)input_length);
+                BlobBuilderArray<float> input = builder.Allocate(ref channels[i].Input, (int)input_length);
                 {
                     var bufferData = importer.AnimationCache[animationIndex].Samplers[gltfChanndel.Sampler.Id].Input.bufferData;
                     unsafe
@@ -72,7 +69,7 @@ namespace Budget.GLTF
                     default:
                         throw new Exception($"unsupported output type: {output_accessor.Type}");
                 }
-                BlobBuilderArray<float> output = builder.Allocate(ref channels[i].output, (int)output_length);
+                BlobBuilderArray<float> output = builder.Allocate(ref channels[i].Output, (int)output_length);
                 {
                     var bufferData = importer.AnimationCache[animationIndex].Samplers[gltfChanndel.Sampler.Id].Output.bufferData;
                     unsafe
@@ -85,13 +82,13 @@ namespace Budget.GLTF
                 switch (gltfChanndel.Target.Path)
                 {
                     case "translation":
-                        channels[i].path = ChannelPath.TRANSLATION;
+                        channels[i].Path = ChannelPath.TRANSLATION;
                         break;
                     case "rotation":
-                        channels[i].path = ChannelPath.ROTATION;
+                        channels[i].Path = ChannelPath.ROTATION;
                         break;
                     case "scale":
-                        channels[i].path = ChannelPath.SCALE;
+                        channels[i].Path = ChannelPath.SCALE;
                         break;
                     case "weights":
                     default:
@@ -164,7 +161,7 @@ namespace Budget.GLTF
                     {
                         data[i] = bindposes[i];
                     }
-                    // TODO: Is there a cleaner way to access bufferData?
+                    // Is there a cleaner way to access bufferData?
                     // var bufferData = _context.SceneImporter.AnimationCache[0].Samplers[0].Input.bufferData;
                     // unsafe
                     // {
