@@ -150,11 +150,13 @@ namespace Budget
                 unsafe
                 {
                     var Data = (NativeArray<float>*)DataView.Data;
-                    var matrices = (float4x4*)((float*)Data->GetUnsafePtr() + DataView.Offset);
+                    var matrices = (float4x3*)((float*)Data->GetUnsafePtr() + DataView.Offset);
                     for (int i = 0; i < inverseBindMatrices.Length; i++)
                     {
-                        var res = math.mul(worlds[i + jointOffset], inverseBindMatrices[i]);
-                        UnsafeUtility.MemCpy(matrices + i, &res, UnsafeUtility.SizeOf<float4x4>());
+                        var m4x4 = math.mul(worlds[i + jointOffset], inverseBindMatrices[i]);
+                        matrices[i].c0 = new float4(m4x4.c0.x, m4x4.c0.y, m4x4.c0.z, m4x4.c3.x);
+                        matrices[i].c1 = new float4(m4x4.c1.x, m4x4.c1.y, m4x4.c1.z, m4x4.c3.y);
+                        matrices[i].c2 = new float4(m4x4.c2.x, m4x4.c2.y, m4x4.c2.z, m4x4.c3.z);
                     }
                 }
             }

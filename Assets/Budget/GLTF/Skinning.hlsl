@@ -16,14 +16,14 @@ void SkinningDeform_float(float3 Pos, float4 Joints, float4 Weights, UnityTextur
 
     for (int n = 0; n < 4; n++)
     {
-        uint i = joints[n] * 4u + offset / 4u;
+        uint i = joints[n] * 3u + offset / 4u;
         uint y = i / width;
         uint x = i % width;
 
-        float4 rows[4];
-        for(int j = 0; j < 4; j++) 
+        float4 c[3];
+        for(int j = 0; j < 3; j++) 
         {
-            rows[j] = JointMap.Load(int3(x, y, 0));
+            c[j] = JointMap.Load(int3(x, y, 0));
             if (x == width - 1u)
             {
                 y++;
@@ -34,10 +34,14 @@ void SkinningDeform_float(float3 Pos, float4 Joints, float4 Weights, UnityTextur
                 x++;
             }
         }
-        mat += mul(float4x4(rows[0], rows[1], rows[2], rows[3]), Weights[n]);
+        mat += mul(float4x4(
+            float4(c[0].xyz, 0.0), 
+            float4(c[1].xyz, 0.0), 
+            float4(c[2].xyz, 0.0), 
+            float4(c[0].w, c[1].w, c[2].w, 1.0)), 
+            Weights[n]);
     }
     
-    // Out = mul(mat, float4(Pos, 1.0)).xyz; Why not this?
     Out = mul(float4(Pos, 1.0), mat).xyz;
 }
 #endif 

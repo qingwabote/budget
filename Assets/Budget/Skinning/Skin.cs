@@ -31,7 +31,7 @@ namespace Budget
 
             virtual public int Add()
             {
-                return m_View.AddBlock(16 * m_Stride);
+                return m_View.AddBlock(12 * m_Stride);
             }
 
             public void Update()
