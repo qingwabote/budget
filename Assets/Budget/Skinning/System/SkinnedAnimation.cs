@@ -74,7 +74,6 @@ namespace Budget
                     else
                     {
                         offset = info.Store.Add();
-                        // memory may be reallocated after Add();
                         unsafe
                         {
                             joint.ValueRW.DataView.Value = new()
@@ -91,7 +90,6 @@ namespace Budget
                 else
                 {
                     offset = info.Store.Add();
-                    // memory may be reallocated after Add();
                     unsafe
                     {
                         joint.ValueRW.DataView.Value = new()

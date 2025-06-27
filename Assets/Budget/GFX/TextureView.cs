@@ -6,34 +6,34 @@ namespace Budget
 {
     public class TextureView : MemoryView<float>
     {
-        private static int Length2extent(int length)
+        private static (int width, int height) Length2extent(int length)
         {
-            var texels = math.ceil(length / 4.0f);
-            var extent = math.ceil(math.sqrt(texels));
-            var n = math.ceil(math.log2(extent));
-            return (int)math.pow(2, n);
+            float texels = math.ceil(length / 4f);
+            int width = 1 << (int)math.ceil(math.log2(math.ceil(math.sqrt(texels))));
+            int height = 1 << (int)math.ceil(math.log2(math.ceil(texels / width)));
+            return (width, height);
         }
 
         public readonly Texture2D Texture;
 
         public TextureView(int length = 0, int capacity = 16) : base(length)
         {
-            var extent = Length2extent(math.max(length, capacity));
-            Texture = new Texture2D(extent, extent, TextureFormat.RGBAFloat, false, true);
+            var (width, height) = Length2extent(math.max(length, capacity));
+            Texture = new Texture2D(width, height, TextureFormat.RGBAFloat, false, true);
             m_Source.Value = Texture.GetPixelData<float>(0);
         }
 
         protected override void Reserve(int capacity)
         {
-            var extent = Length2extent(capacity);
-            if (Texture.width >= extent)
+            var (width, height) = Length2extent(capacity);
+            if (Texture.width * Texture.height >= width * height)
             {
                 return;
             }
 
             var copy = new NativeArray<float>(Length, Allocator.Temp);
             NativeArray<float>.Copy(m_Source.Value, 0, copy, 0, Length);
-            if (!Texture.Reinitialize(extent, extent))
+            if (!Texture.Reinitialize(width, height))
             {
                 Debug.Log("Texture.Reinitialize failed!");
                 return;
