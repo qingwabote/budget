@@ -5,10 +5,10 @@ namespace Budget
 {
     public class Model
     {
-        public Entity Transform;
-
         public Mesh Mesh;
         public Material Material;
+
+        public bool Initialized;
 
         virtual public void Initialize(ref SystemState state) { }
 
@@ -19,9 +19,8 @@ namespace Budget
         virtual public void InstanceProperty(MaterialProperty input) { }
     }
 
-    public class ModelComponet : IComponentData
+    public class ModelArray : IComponentData
     {
-        public Model Value;
-        public bool Initialized;
+        public Model[] Value;
     }
 }

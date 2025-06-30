@@ -25,35 +25,38 @@ namespace Budget
         {
             Profile.Begin(m_BatchEntry);
             NativeHashMap<int, int> cache = new(8, Allocator.Temp);
-            foreach (var modelCompont in SystemAPI.Query<ModelComponet>())
+            foreach (var (models, world) in SystemAPI.Query<ModelArray, RefRO<LocalToWorld>>())
             {
-                var model = modelCompont.Value;
-                if (!modelCompont.Initialized)
+                foreach (var model in models.Value)
                 {
-                    model.Initialize(ref state);
-                    modelCompont.Initialized = true;
+                    if (!model.Initialized)
+                    {
+                        model.Initialize(ref state);
+                        model.Initialized = true;
+                    }
+
+                    int key = model.Hash();
+                    Batch batch;
+                    if (cache.TryGetValue(key, out int index))
+                    {
+                        batch = s_Queue.Data[index];
+                    }
+                    else
+                    {
+                        cache.Add(key, s_Queue.Count);
+                        batch = s_Queue.Get();
+                        batch.Mesh = model.Mesh;
+                        batch.Material = model.Material;
+                        batch.MaterialProperty.Clear();
+                        model.MaterialProperty(batch.MaterialProperty);
+                        batch.InstanceWorlds.Clear();
+                        batch.InstanceCount = 0;
+                    }
+                    batch.InstanceWorlds.Add(world.ValueRO.Value);
+                    model.InstanceProperty(batch.MaterialProperty);
+                    batch.InstanceCount++;
                 }
 
-                int key = model.Hash();
-                Batch batch;
-                if (cache.TryGetValue(key, out int index))
-                {
-                    batch = s_Queue.Data[index];
-                }
-                else
-                {
-                    cache.Add(key, s_Queue.Count);
-                    batch = s_Queue.Get();
-                    batch.Mesh = model.Mesh;
-                    batch.Material = model.Material;
-                    batch.MaterialProperty.Clear();
-                    model.MaterialProperty(batch.MaterialProperty);
-                    batch.InstanceWorlds.Clear();
-                    batch.InstanceCount = 0;
-                }
-                batch.InstanceWorlds.Add(SystemAPI.GetComponentRO<LocalToWorld>(model.Transform).ValueRO.Value);
-                model.InstanceProperty(batch.MaterialProperty);
-                batch.InstanceCount++;
             }
             Profile.End(m_BatchEntry);
             Profile.Set(m_CountEntry, s_Queue.Count);

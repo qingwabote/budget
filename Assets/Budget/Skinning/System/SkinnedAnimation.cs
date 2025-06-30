@@ -57,7 +57,7 @@ namespace Budget
             //     }
             // }
 
-            foreach (var (infoComponent, joint, anim, clips, entity) in SystemAPI.Query<SkinInfoComponent, RefRW<SkinJoint>, RefRO<AnimationState>, DynamicBuffer<ClipBinging>>().WithEntityAccess().WithOptions(EntityQueryOptions.IgnoreComponentEnabledState))
+            foreach (var (infoComponent, joint, anim, clips, entity) in SystemAPI.Query<SkinInfoComponent, RefRW<SkinJoint>, RefRO<AnimationState>, DynamicBuffer<ClipBinging>>().WithEntityAccess())
             {
                 var info = infoComponent.Value;
                 int offset;

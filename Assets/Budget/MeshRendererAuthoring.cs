@@ -17,11 +17,10 @@ namespace Budget
 
             var model = new Model
             {
-                Transform = entity,
                 Mesh = meshFilter.sharedMesh,
                 Material = meshRenderer.sharedMaterial
             };
-            AddComponentObject(entity, new ModelComponet { Value = model });
+            AddComponentObject(entity, new ModelArray { Value = new[] { model } });
         }
     }
 }

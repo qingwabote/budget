@@ -136,6 +136,21 @@ namespace Budget
             {
                 Value = skinInfo
             });
+
+            var renderers = authoring.gameObject.GetComponentsInChildren<SkinnedMeshRendererAuthoring>();
+            var models = new Model[renderers.Length];
+            for (int i = 0; i < renderers.Length; i++)
+            {
+                var author = renderers[i];
+                var meshRenderer = author.GetComponent<SkinnedMeshRenderer>();
+                models[i] = new SkinnedModel
+                {
+                    Entity = GetEntity(author.Skin, TransformUsageFlags.None),
+                    Mesh = meshRenderer.sharedMesh,
+                    Material = author.Material
+                };
+            }
+            AddComponentObject(entity, new ModelArray { Value = models });
         }
     }
 }

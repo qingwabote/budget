@@ -20,9 +20,11 @@ namespace Budget
 
         public SkinInfo Skin;
 
+        public Entity Entity;
+
         override public void Initialize(ref SystemState state)
         {
-            Skin = state.EntityManager.GetComponentObject<SkinInfoComponent>(Transform).Value;
+            Skin = state.EntityManager.GetComponentObject<SkinInfoComponent>(Entity).Value;
         }
 
         override public int Hash() { return HashCode.Combine(Mesh.GetHashCode(), Material.GetHashCode(), Skin.Store.Texture.GetHashCode()); }
