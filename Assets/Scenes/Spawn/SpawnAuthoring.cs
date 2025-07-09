@@ -1,4 +1,6 @@
 using Unity.Entities;
+using Unity.Mathematics;
+using Unity.Transforms;
 using UnityEngine;
 
 public class SpawnAuthoring : MonoBehaviour
@@ -38,6 +40,13 @@ class SpawnBaker : Baker<SpawnAuthoring>
 
 public partial struct SpawnSystem : ISystem
 {
+    private Unity.Mathematics.Random m_Random;
+
+    public void OnCreate(ref SystemState state)
+    {
+        m_Random = new Unity.Mathematics.Random(1);
+    }
+
     public void OnUpdate(ref SystemState state)
     {
         if (!SystemAPI.HasSingleton<Spawn>())
@@ -45,15 +54,22 @@ public partial struct SpawnSystem : ISystem
             return;
         }
 
-        var entity = SystemAPI.GetSingletonEntity<Spawn>();
-        if (state.EntityManager.HasComponent<Spawn.Initializer>(entity))
+        var spawn_entity = SystemAPI.GetSingletonEntity<Spawn>();
+        if (state.EntityManager.HasComponent<Spawn.Initializer>(spawn_entity))
         {
-            var spawn = state.EntityManager.GetComponentData<Spawn>(entity);
+            var spawn = state.EntityManager.GetComponentData<Spawn>(spawn_entity);
             for (int i = 0; i < spawn.Num; i++)
             {
-                state.EntityManager.Instantiate(spawn.Prefab);
+                var entity = state.EntityManager.Instantiate(spawn.Prefab);
+                SystemAPI.GetComponentRW<LocalTransform>(entity).ValueRW.Position = new float3(m_Random.NextFloat(-3, 4), 0, m_Random.NextFloat(-6, 7));
             }
-            state.EntityManager.RemoveComponent<Spawn.Initializer>(entity);
+            state.EntityManager.RemoveComponent<Spawn.Initializer>(spawn_entity);
+        }
+        else
+        {
+            var sysHandle = World.DefaultGameObjectInjectionWorld.GetExistingSystem<LocalToWorldSystem>();
+            ref var sysState = ref World.DefaultGameObjectInjectionWorld.Unmanaged.ResolveSystemStateRef(sysHandle);
+            sysState.Enabled = false;
         }
     }
 }

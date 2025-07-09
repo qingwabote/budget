@@ -112,6 +112,11 @@ namespace Budget.GLTF
             _context = context;
         }
 
+        public override void OnBeforeImport()
+        {
+            _context.SceneImporter.CustomShaderName = "Universal Render Pipeline/Simple Lit";
+        }
+
         public override void OnAfterImportNode(Node node, int nodeIndex, GameObject nodeObject)
         {
             var renderer = nodeObject.GetComponent<Renderer>();
@@ -121,6 +126,15 @@ namespace Budget.GLTF
                 {
                     nodeObject.AddComponent<MeshRendererAuthoring>();
                 }
+            }
+        }
+
+        public override void OnAfterImportMaterial(GLTFMaterial material, int materialIndex, Material materialObject)
+        {
+            var albedo = material.PbrMetallicRoughness.BaseColorFactor;
+            if (albedo != null)
+            {
+                materialObject.SetColor("_BaseColor", new(albedo.R, albedo.G, albedo.B, albedo.A));
             }
         }
 
