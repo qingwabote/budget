@@ -38,6 +38,7 @@ class SpawnBaker : Baker<SpawnAuthoring>
     }
 }
 
+[UpdateBefore(typeof(TransformSystemGroup))]
 public partial struct SpawnSystem : ISystem
 {
     private Unity.Mathematics.Random m_Random;

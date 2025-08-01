@@ -7,12 +7,14 @@ namespace Budget
 {
     public partial struct Batcher : ISystem
     {
-        private static readonly TransientPool<Batch> s_Queue = new();
+        private static readonly RecycleQueue<Batch> s_Queue = new();
         private static readonly MaterialPropertyBlock s_MPB = new();
 
         private int m_BatchEntry;
         private int m_CountEntry;
         private int m_RenderEntry;
+
+        private bool m_Once;
 
         public void OnCreate(ref SystemState state)
         {
@@ -24,48 +26,46 @@ namespace Budget
         public void OnUpdate(ref SystemState state)
         {
             Profile.Begin(m_BatchEntry);
-            NativeHashMap<int, int> cache = new(8, Allocator.Temp);
-            foreach (var (models, world) in SystemAPI.Query<ModelArray, RefRO<LocalToWorld>>())
+            if (!m_Once)
             {
-                foreach (var model in models.Value)
+                NativeHashMap<int, int> cache = new(8, Allocator.Temp);
+                foreach (var (models, world) in SystemAPI.Query<ModelArray, RefRO<LocalToWorld>>())
                 {
-                    if (!model.Initialized)
+                    foreach (var model in models.Value)
                     {
-                        model.Initialize(ref state);
-                        model.Initialized = true;
-                    }
+                        if (!model.Initialized)
+                        {
+                            model.Initialize(ref state);
+                            model.Initialized = true;
+                        }
 
-                    int key = model.Hash();
-                    Batch batch;
-                    if (cache.TryGetValue(key, out int index))
-                    {
-                        batch = s_Queue.Data[index];
+                        int key = model.Hash();
+                        Batch batch;
+                        if (cache.TryGetValue(key, out int index))
+                        {
+                            batch = s_Queue.Data[index];
+                        }
+                        else
+                        {
+                            cache.Add(key, s_Queue.Count);
+                            batch = s_Queue.Push();
+                            batch.Mesh = model.Mesh;
+                            batch.Material = model.Material;
+                            model.MaterialProperty(batch.MaterialProperty);
+                        }
+                        batch.InstanceWorlds.Add(world.ValueRO.Value);
+                        model.InstanceProperty(batch.MaterialProperty);
+                        batch.InstanceCount++;
                     }
-                    else
-                    {
-                        cache.Add(key, s_Queue.Count);
-                        batch = s_Queue.Get();
-                        batch.Mesh = model.Mesh;
-                        batch.Material = model.Material;
-                        batch.MaterialProperty.Clear();
-                        model.MaterialProperty(batch.MaterialProperty);
-                        batch.InstanceWorlds.Clear();
-                        batch.InstanceCount = 0;
-                    }
-                    batch.InstanceWorlds.Add(world.ValueRO.Value);
-                    model.InstanceProperty(batch.MaterialProperty);
-                    batch.InstanceCount++;
+                    m_Once = true;
                 }
-
             }
             Profile.End(m_BatchEntry);
             Profile.Set(m_CountEntry, s_Queue.Count);
 
             Profile.Begin(m_RenderEntry);
-            for (int i = 0; i < s_Queue.Count; i++)
+            foreach (var batch in s_Queue)
             {
-                var batch = s_Queue.Data[i];
-
                 s_MPB.Clear();
                 foreach (var (id, texture) in batch.MaterialProperty.Textures)
                 {
@@ -81,6 +81,10 @@ namespace Budget
                     matProps = s_MPB
                 };
                 Graphics.RenderMeshInstanced(rp, batch.Mesh, 0, batch.InstanceWorlds.AsArray().Reinterpret<Matrix4x4>(), batch.InstanceCount);
+
+                // batch.MaterialProperty.Clear();
+                // batch.InstanceWorlds.Clear();
+                // batch.InstanceCount = 0;
             }
             Profile.End(m_RenderEntry);
         }

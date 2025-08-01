@@ -114,7 +114,7 @@ namespace Budget.GLTF
 
         public override void OnBeforeImport()
         {
-            _context.SceneImporter.CustomShaderName = "Universal Render Pipeline/Simple Lit";
+            _context.SceneImporter.CustomShaderName = "Budget/Phong";
         }
 
         public override void OnAfterImportNode(Node node, int nodeIndex, GameObject nodeObject)
@@ -136,6 +136,11 @@ namespace Budget.GLTF
             {
                 materialObject.SetColor("_BaseColor", new(albedo.R, albedo.G, albedo.B, albedo.A));
             }
+
+            // float smoothness = 1.0f - (float)material.PbrMetallicRoughness.RoughnessFactor;
+            // materialObject.SetFloat("_Smoothness", smoothness);
+
+            // ignore Metallic
         }
 
         public override void OnAfterImportScene(GLTFScene scene, int sceneIndex, GameObject sceneObject)
