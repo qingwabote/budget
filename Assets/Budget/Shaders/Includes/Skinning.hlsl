@@ -1,49 +1,37 @@
 #ifndef BUDGET_SKINNING_INCLUDED
 #define BUDGET_SKINNING_INCLUDED
 
-void SkinningDeform(inout float3 pos, uint4 joints, float4 weights, Texture2D jointMap, uint width, uint offset)
+void SkinningDeform(inout float3 pos, float4 joints, float4 weights, Texture2D jointMap, float width, float offset)
 {
-    float4x4 mat = float4x4(
-        0,0,0,0,
-        0,0,0,0,
-        0,0,0,0,
-        0,0,0,0
-    );
+    float width_inv = 1.0 / width;
+    float offset_texel = offset / 4.0;
 
+    float4x4 mat = (float4x4)0.0;
     for (int n = 0; n < 4; n++)
     {
-        uint i = joints[n] * 3u + offset / 4u;
-        uint y = i / width;
-        uint x = i % width;
+        float index = joints[n] * 3.0 + offset_texel;
 
         float4 c[3];
         for(int j = 0; j < 3; j++) 
         {
+            float i = index + float(j);
+            float y = floor(i * width_inv);
+            float x = i - width * y;
             c[j] = jointMap.Load(int3(x, y, 0));
-            if (x == width - 1u)
-            {
-                y++;
-                x = 0u;
-            }
-            else
-            {
-                x++;
-            }
         }
         mat += mul(float4x4(
-            float4(c[0].xyz, 0.0), 
-            float4(c[1].xyz, 0.0), 
-            float4(c[2].xyz, 0.0), 
-            float4(c[0].w, c[1].w, c[2].w, 1.0)), 
+            c[0].x, c[1].x, c[2].x, c[0].w,
+            c[0].y, c[1].y, c[2].y, c[1].w,
+            c[0].z, c[1].z, c[2].z, c[2].w,
+            0.0,   0.0,    0.0,    1.0), 
             weights[n]);
     }
-    
-    pos = mul(float4(pos, 1.0), mat).xyz;
+    pos = mul(mat, float4(pos, 1.0)).xyz;
 }
 
 void SkinningDeform_float(float3 Pos, float4 Joints, float4 Weights, Texture2D JointMap, float Width, float Offset, out float3 Out)
 {
-    SkinningDeform(Pos, uint4(Joints), Weights, JointMap, uint(Width), uint(Offset));
+    SkinningDeform(Pos, Joints, Weights, JointMap, Width, Offset);
     Out = Pos;
 }
 
