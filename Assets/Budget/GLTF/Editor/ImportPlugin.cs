@@ -202,9 +202,10 @@ namespace Budget.GLTF
                     {
                         material = new Material(renderer.sharedMaterial)
                         {
-                            shader = Shader.Find("Budget/PBRGraph-Universal"),
+                            shader = Shader.Find("Budget/Phong"),
                             enableInstancing = true
                         };
+                        material.EnableKeyword("_USE_SKINNING");
                         materials.Add(renderer.sharedMaterial, material);
 
                         _context.AssetContext.AddObjectToAsset($"Budget_{material.name}", material);
