@@ -25836,6 +25836,24 @@
 
 {
     "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.Texture2DInputMaterialSlot",
+    "m_ObjectId": "9fbead517ba24057aac6e5b547ed3651",
+    "m_Id": 3,
+    "m_DisplayName": "JointMap",
+    "m_SlotType": 0,
+    "m_Hidden": false,
+    "m_ShaderOutputName": "JointMap",
+    "m_StageCapability": 3,
+    "m_BareResource": true,
+    "m_Texture": {
+        "m_SerializedTexture": "",
+        "m_Guid": ""
+    },
+    "m_DefaultType": 0
+}
+
+{
+    "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.DynamicValueMaterialSlot",
     "m_ObjectId": "a00ac96d03f84e99832f03c8462d30a3",
     "m_Id": 0,
@@ -28367,7 +28385,7 @@
             "m_Id": "fdc6ca3047954a218a246abfc9533828"
         },
         {
-            "m_Id": "fb624e592d8140ca87d93976a6f1c12f"
+            "m_Id": "9fbead517ba24057aac6e5b547ed3651"
         },
         {
             "m_Id": "41c8419da9c442ea973a729b1c0e8de0"
@@ -37793,24 +37811,6 @@
         "w": 0.0
     },
     "m_Labels": []
-}
-
-{
-    "m_SGVersion": 0,
-    "m_Type": "UnityEditor.ShaderGraph.Texture2DInputMaterialSlot",
-    "m_ObjectId": "fb624e592d8140ca87d93976a6f1c12f",
-    "m_Id": 3,
-    "m_DisplayName": "JointMap",
-    "m_SlotType": 0,
-    "m_Hidden": false,
-    "m_ShaderOutputName": "JointMap",
-    "m_StageCapability": 3,
-    "m_BareResource": false,
-    "m_Texture": {
-        "m_SerializedTexture": "",
-        "m_Guid": ""
-    },
-    "m_DefaultType": 0
 }
 
 {
