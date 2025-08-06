@@ -131,16 +131,26 @@ namespace Budget.GLTF
 
         public override void OnAfterImportMaterial(GLTFMaterial material, int materialIndex, Material materialObject)
         {
-            var albedo = material.PbrMetallicRoughness.BaseColorFactor;
-            if (albedo != null)
+            var pbr = material.PbrMetallicRoughness;
+            if (pbr != null)
             {
-                materialObject.SetColor("_BaseColor", new(albedo.R, albedo.G, albedo.B, albedo.A));
+                var baseColor = pbr.BaseColorFactor;
+                if (baseColor != null)
+                {
+                    materialObject.SetColor("_BaseColor", new(baseColor.R, baseColor.G, baseColor.B, baseColor.A));
+                }
+                var baseColorTexture = pbr.BaseColorTexture;
+                if (baseColorTexture != null)
+                {
+                    materialObject.SetTexture("_BaseMap", _context.SceneImporter.TextureCache[baseColorTexture.Index.Id].Texture);
+                    materialObject.SetFloat("_BASEMAP", 1);
+                }
+
+                float smoothness = 1.0f - (float)pbr.RoughnessFactor;
+                materialObject.SetFloat("_Smoothness", smoothness);
+
+                // ignore Metallic
             }
-
-            // float smoothness = 1.0f - (float)material.PbrMetallicRoughness.RoughnessFactor;
-            // materialObject.SetFloat("_Smoothness", smoothness);
-
-            // ignore Metallic
         }
 
         public override void OnAfterImportScene(GLTFScene scene, int sceneIndex, GameObject sceneObject)
@@ -205,7 +215,7 @@ namespace Budget.GLTF
                             shader = Shader.Find("Budget/Phong"),
                             enableInstancing = true
                         };
-                        material.EnableKeyword("_USE_SKINNING");
+                        material.SetFloat("_SKINNING", 1);
                         materials.Add(renderer.sharedMaterial, material);
 
                         _context.AssetContext.AddObjectToAsset($"Budget_{material.name}", material);
