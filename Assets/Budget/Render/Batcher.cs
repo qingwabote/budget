@@ -12,59 +12,53 @@ namespace Budget
 
         private int m_BatchEntry;
         private int m_CountEntry;
-        private int m_RenderEntry;
-
-        private bool m_Once;
+        private int m_DrawEntry;
 
         public void OnCreate(ref SystemState state)
         {
             m_BatchEntry = Profile.DefineEntry("Batch");
             m_CountEntry = Profile.DefineEntry("Count");
-            m_RenderEntry = Profile.DefineEntry("Render");
+            m_DrawEntry = Profile.DefineEntry("Draw");
         }
 
         public void OnUpdate(ref SystemState state)
         {
             Profile.Begin(m_BatchEntry);
-            if (!m_Once)
+            NativeHashMap<int, int> cache = new(8, Allocator.Temp);
+            foreach (var (models, world) in SystemAPI.Query<ModelArray, RefRO<LocalToWorld>>())
             {
-                NativeHashMap<int, int> cache = new(8, Allocator.Temp);
-                foreach (var (models, world) in SystemAPI.Query<ModelArray, RefRO<LocalToWorld>>())
+                foreach (var model in models.Value)
                 {
-                    foreach (var model in models.Value)
+                    if (!model.Initialized)
                     {
-                        if (!model.Initialized)
-                        {
-                            model.Initialize(ref state);
-                            model.Initialized = true;
-                        }
-
-                        int key = model.Hash();
-                        Batch batch;
-                        if (cache.TryGetValue(key, out int index))
-                        {
-                            batch = s_Queue.Data[index];
-                        }
-                        else
-                        {
-                            cache.Add(key, s_Queue.Count);
-                            batch = s_Queue.Push();
-                            batch.Mesh = model.Mesh;
-                            batch.Material = model.Material;
-                            model.MaterialProperty(batch.MaterialProperty);
-                        }
-                        batch.InstanceWorlds.Add(world.ValueRO.Value);
-                        model.InstanceProperty(batch.MaterialProperty);
-                        batch.InstanceCount++;
+                        model.Initialize(ref state);
+                        model.Initialized = true;
                     }
-                    m_Once = true;
+
+                    int key = model.Hash();
+                    Batch batch;
+                    if (cache.TryGetValue(key, out int index))
+                    {
+                        batch = s_Queue.Data[index];
+                    }
+                    else
+                    {
+                        cache.Add(key, s_Queue.Count);
+                        batch = s_Queue.Push();
+                        batch.Mesh = model.Mesh;
+                        batch.Material = model.Material;
+                        model.MaterialProperty(batch.MaterialProperty);
+                    }
+                    batch.InstanceWorlds.Add(world.ValueRO.Value);
+                    model.InstanceProperty(batch.MaterialProperty);
+                    batch.InstanceCount++;
                 }
             }
             Profile.End(m_BatchEntry);
             Profile.Set(m_CountEntry, s_Queue.Count);
 
-            Profile.Begin(m_RenderEntry);
-            foreach (var batch in s_Queue)
+            Profile.Begin(m_DrawEntry);
+            foreach (var batch in s_Queue.Drain())
             {
                 s_MPB.Clear();
                 foreach (var (id, texture) in batch.MaterialProperty.Textures)
@@ -82,11 +76,11 @@ namespace Budget
                 };
                 Graphics.RenderMeshInstanced(rp, batch.Mesh, 0, batch.InstanceWorlds.AsArray().Reinterpret<Matrix4x4>(), batch.InstanceCount);
 
-                // batch.MaterialProperty.Clear();
-                // batch.InstanceWorlds.Clear();
-                // batch.InstanceCount = 0;
+                batch.MaterialProperty.Clear();
+                batch.InstanceWorlds.Clear();
+                batch.InstanceCount = 0;
             }
-            Profile.End(m_RenderEntry);
+            Profile.End(m_DrawEntry);
         }
     }
 }
