@@ -29,7 +29,7 @@ Shader "Budget/Phong"
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
             #if defined(_SKINNING_ON)
-            #include "Assets/Budget/Shaders/Includes/Skinning.hlsl"
+            #include "Packages/entities.budget/Shaders/Includes/Skinning.hlsl"
             #endif
 
             struct Attributes

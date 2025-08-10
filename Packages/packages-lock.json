@@ -244,6 +244,12 @@
       },
       "url": "https://packages.unity.cn"
     },
+    "entities.budget": {
+      "version": "file:entities.budget",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
+    },
     "org.khronos.unitygltf": {
       "version": "https://github.com/KhronosGroup/UnityGLTF.git",
       "depth": 0,
