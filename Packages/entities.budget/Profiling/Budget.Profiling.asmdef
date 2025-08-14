@@ -1,14 +1,9 @@
 {
-    "name": "Budget",
+    "name": "Budget.Profiling",
     "rootNamespace": "",
     "references": [
-        "Unity.Burst",
-        "Unity.Entities",
-        "Unity.Transforms",
-        "Unity.Entities.Hybrid",
         "Unity.Collections",
-        "Unity.Mathematics",
-        "Budget.Profiling"
+        "Unity.Burst"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

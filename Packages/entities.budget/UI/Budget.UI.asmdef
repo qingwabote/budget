@@ -1,13 +1,11 @@
 {
-    "name": "Budget",
+    "name": "Budget.UI",
     "rootNamespace": "",
     "references": [
-        "Unity.Burst",
-        "Unity.Entities",
-        "Unity.Transforms",
-        "Unity.Entities.Hybrid",
-        "Unity.Collections",
         "Unity.Mathematics",
+        "Unity.Collections",
+        "Unity.TextMeshPro",
+        "Unity.Burst",
         "Budget.Profiling"
     ],
     "includePlatforms": [],
