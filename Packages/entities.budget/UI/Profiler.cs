@@ -1,6 +1,4 @@
 using TMPro;
-using Unity.Burst;
-using Unity.Collections;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -11,18 +9,16 @@ namespace Budget
     {
         private TextMeshProUGUI m_Label;
 
-        private int m_RenderEntry;
-
         private string m_Text;
 
         void Start()
         {
             m_Label = GetComponent<TextMeshProUGUI>();
 
-            m_RenderEntry = Profile.DefineEntry("Render");
+            // m_RenderEntry = Profile.DefineEntry("Render");
             RenderPipelineManager.beginContextRendering += (context, cameras) =>
             {
-                Profile.Begin(m_RenderEntry);
+                // Profile.Begin(m_RenderEntry);
             };
 
             float time = 0;
@@ -30,7 +26,7 @@ namespace Budget
 
             RenderPipelineManager.endContextRendering += (context, cameras) =>
             {
-                Profile.End(m_RenderEntry);
+                // Profile.End(m_RenderEntry);
 
                 if (time < 1.0f)
                 {
@@ -50,17 +46,10 @@ namespace Budget
                 {
                     ref var entry = ref entries.ElementAt(i);
                     name = entry.Name.ToString().PadRight(PadRight);
-                    if (entry.Delta == -1)
-                    {
-                        string value = entry.Value.ToString().PadLeft(PadLeft);
-                        text += $"\n{name} {value}";
-                    }
-                    else
-                    {
-                        string ms = (entry.Delta / frames * 1000).ToString("F3").PadLeft(PadLeft);
-                        text += $"\n{name} {ms}ms";
-                        entry.Delta = 0;
-                    }
+
+                    string average = (entry.Delta / frames).ToString("F3").PadLeft(PadLeft);
+                    text += $"\n{name} {average}";
+                    entry.Delta = 0;
                 }
 
                 m_Text = text;

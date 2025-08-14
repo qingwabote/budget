@@ -23,64 +23,67 @@ namespace Budget
 
         public void OnUpdate(ref SystemState state)
         {
-            Profile.Begin(m_BatchEntry);
-            NativeHashMap<int, int> cache = new(8, Allocator.Temp);
-            foreach (var (models, world) in SystemAPI.Query<ModelArray, RefRO<LocalToWorld>>())
+            using (new Profile.Scope(m_BatchEntry))
             {
-                foreach (var model in models.Value)
+                NativeHashMap<int, int> cache = new(8, Allocator.Temp);
+                foreach (var (models, world) in SystemAPI.Query<ModelArray, RefRO<LocalToWorld>>())
                 {
-                    if (!model.Initialized)
+                    foreach (var model in models.Value)
                     {
-                        model.Initialize(ref state);
-                        model.Initialized = true;
-                    }
+                        if (!model.Initialized)
+                        {
+                            model.Initialize(ref state);
+                            model.Initialized = true;
+                        }
 
-                    int key = model.Hash();
-                    Batch batch;
-                    if (cache.TryGetValue(key, out int index))
-                    {
-                        batch = s_Queue.Data[index];
+                        int key = model.Hash();
+                        Batch batch;
+                        if (cache.TryGetValue(key, out int index))
+                        {
+                            batch = s_Queue.Data[index];
+                        }
+                        else
+                        {
+                            cache.Add(key, s_Queue.Count);
+                            batch = s_Queue.Push();
+                            batch.Mesh = model.Mesh;
+                            batch.Material = model.Material;
+                            model.MaterialProperty(batch.MaterialProperty);
+                        }
+                        batch.InstanceWorlds.Add(world.ValueRO.Value);
+                        model.InstanceProperty(batch.MaterialProperty);
+                        batch.InstanceCount++;
                     }
-                    else
-                    {
-                        cache.Add(key, s_Queue.Count);
-                        batch = s_Queue.Push();
-                        batch.Mesh = model.Mesh;
-                        batch.Material = model.Material;
-                        model.MaterialProperty(batch.MaterialProperty);
-                    }
-                    batch.InstanceWorlds.Add(world.ValueRO.Value);
-                    model.InstanceProperty(batch.MaterialProperty);
-                    batch.InstanceCount++;
                 }
             }
-            Profile.End(m_BatchEntry);
+
             Profile.Set(m_CountEntry, s_Queue.Count);
 
-            Profile.Begin(m_DrawEntry);
-            foreach (var batch in s_Queue.Drain())
+            using (new Profile.Scope(m_DrawEntry))
             {
-                s_MPB.Clear();
-                foreach (var (id, texture) in batch.MaterialProperty.Textures)
+                foreach (var batch in s_Queue.Drain())
                 {
-                    s_MPB.SetTexture(id, texture);
-                }
-                foreach (var (id, list) in batch.MaterialProperty.Floats)
-                {
-                    s_MPB.SetFloatArray(id, list);
-                }
+                    s_MPB.Clear();
+                    foreach (var (id, texture) in batch.MaterialProperty.Textures)
+                    {
+                        s_MPB.SetTexture(id, texture);
+                    }
+                    foreach (var (id, list) in batch.MaterialProperty.Floats)
+                    {
+                        s_MPB.SetFloatArray(id, list);
+                    }
 
-                var rp = new RenderParams(batch.Material)
-                {
-                    matProps = s_MPB
-                };
-                Graphics.RenderMeshInstanced(rp, batch.Mesh, 0, batch.InstanceWorlds.AsArray().Reinterpret<Matrix4x4>(), batch.InstanceCount);
+                    var rp = new RenderParams(batch.Material)
+                    {
+                        matProps = s_MPB
+                    };
+                    Graphics.RenderMeshInstanced(rp, batch.Mesh, 0, batch.InstanceWorlds.AsArray().Reinterpret<Matrix4x4>(), batch.InstanceCount);
 
-                batch.MaterialProperty.Clear();
-                batch.InstanceWorlds.Clear();
-                batch.InstanceCount = 0;
+                    batch.MaterialProperty.Clear();
+                    batch.InstanceWorlds.Clear();
+                    batch.InstanceCount = 0;
+                }
             }
-            Profile.End(m_DrawEntry);
         }
     }
 }

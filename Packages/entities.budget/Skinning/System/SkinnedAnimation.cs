@@ -118,48 +118,47 @@ namespace Budget
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
-            Profile.Begin(m_ProfileEntry);
-
-            foreach (var (nodes, joint) in SystemAPI.Query<DynamicBuffer<SkinNode>, RefRO<SkinJoint>>())
+            using (new Profile.Scope(m_ProfileEntry))
             {
-                var DataView = joint.ValueRO.DataView.Value;
-                if (DataView.Data == 0)
+                foreach (var (nodes, joint) in SystemAPI.Query<DynamicBuffer<SkinNode>, RefRO<SkinJoint>>())
                 {
-                    continue;
-                }
-
-                var worlds = new NativeArray<float4x4>(nodes.Length, Allocator.Temp);
-                for (int i = 0; i < nodes.Length; i++)
-                {
-                    ref var node = ref nodes.ElementAt(i);
-                    var local = SystemAPI.GetComponentRO<LocalTransform>(node.Target);
-                    if (node.Parent == -1)
+                    var DataView = joint.ValueRO.DataView.Value;
+                    if (DataView.Data == 0)
                     {
-                        worlds[i] = float4x4.TRS(local.ValueRO.Position, local.ValueRO.Rotation, local.ValueRO.Scale);
+                        continue;
                     }
-                    else
-                    {
-                        worlds[i] = math.mul(worlds[node.Parent], float4x4.TRS(local.ValueRO.Position, local.ValueRO.Rotation, local.ValueRO.Scale));
-                    }
-                }
 
-                ref var inverseBindMatrices = ref joint.ValueRO.InverseBindMatrices.Value.Data;
-                var jointOffset = joint.ValueRO.Index;
-                unsafe
-                {
-                    var Data = (NativeArray<float>*)DataView.Data;
-                    var matrices = (float4x3*)((float*)Data->GetUnsafePtr() + DataView.Offset);
-                    for (int i = 0; i < inverseBindMatrices.Length; i++)
+                    var worlds = new NativeArray<float4x4>(nodes.Length, Allocator.Temp);
+                    for (int i = 0; i < nodes.Length; i++)
                     {
-                        var m4x4 = math.mul(worlds[i + jointOffset], inverseBindMatrices[i]);
-                        matrices[i].c0 = new float4(m4x4.c0.x, m4x4.c0.y, m4x4.c0.z, m4x4.c3.x);
-                        matrices[i].c1 = new float4(m4x4.c1.x, m4x4.c1.y, m4x4.c1.z, m4x4.c3.y);
-                        matrices[i].c2 = new float4(m4x4.c2.x, m4x4.c2.y, m4x4.c2.z, m4x4.c3.z);
+                        ref var node = ref nodes.ElementAt(i);
+                        var local = SystemAPI.GetComponentRO<LocalTransform>(node.Target);
+                        if (node.Parent == -1)
+                        {
+                            worlds[i] = float4x4.TRS(local.ValueRO.Position, local.ValueRO.Rotation, local.ValueRO.Scale);
+                        }
+                        else
+                        {
+                            worlds[i] = math.mul(worlds[node.Parent], float4x4.TRS(local.ValueRO.Position, local.ValueRO.Rotation, local.ValueRO.Scale));
+                        }
+                    }
+
+                    ref var inverseBindMatrices = ref joint.ValueRO.InverseBindMatrices.Value.Data;
+                    var jointOffset = joint.ValueRO.Index;
+                    unsafe
+                    {
+                        var Data = (NativeArray<float>*)DataView.Data;
+                        var matrices = (float4x3*)((float*)Data->GetUnsafePtr() + DataView.Offset);
+                        for (int i = 0; i < inverseBindMatrices.Length; i++)
+                        {
+                            var m4x4 = math.mul(worlds[i + jointOffset], inverseBindMatrices[i]);
+                            matrices[i].c0 = new float4(m4x4.c0.x, m4x4.c0.y, m4x4.c0.z, m4x4.c3.x);
+                            matrices[i].c1 = new float4(m4x4.c1.x, m4x4.c1.y, m4x4.c1.z, m4x4.c3.y);
+                            matrices[i].c2 = new float4(m4x4.c2.x, m4x4.c2.y, m4x4.c2.z, m4x4.c3.z);
+                        }
                     }
                 }
             }
-
-            Profile.End(m_ProfileEntry);
         }
     }
 
@@ -174,14 +173,13 @@ namespace Budget
 
         public void OnUpdate(ref SystemState state)
         {
-            Profile.Begin(m_ProfileEntry);
-
-            foreach (var skin in SystemAPI.Query<SkinInfoComponent>())
+            using (new Profile.Scope(m_ProfileEntry))
             {
-                skin.Value.Store.Update();
+                foreach (var skin in SystemAPI.Query<SkinInfoComponent>())
+                {
+                    skin.Value.Store.Update();
+                }
             }
-
-            Profile.End(m_ProfileEntry);
         }
     }
 }
