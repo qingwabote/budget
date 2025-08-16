@@ -15,23 +15,23 @@ namespace Budget
         {
             m_Label = GetComponent<TextMeshProUGUI>();
 
-            // m_RenderEntry = Profile.DefineEntry("Render");
-            RenderPipelineManager.beginContextRendering += (context, cameras) =>
-            {
-                // Profile.Begin(m_RenderEntry);
-            };
-
-            float time = 0;
+            float elapse = 0;
             uint frames = 1;
 
+            int render_entry = Profile.DefineEntry("Render");
+            float render_time = 0;
+            RenderPipelineManager.beginContextRendering += (context, cameras) =>
+            {
+                render_time = Time.realtimeSinceStartup;
+            };
             RenderPipelineManager.endContextRendering += (context, cameras) =>
             {
-                // Profile.End(m_RenderEntry);
+                Profile.Set(render_entry, (Time.realtimeSinceStartup - render_time) * 1000);
 
-                if (time < 1.0f)
+                if (elapse < 1.0f)
                 {
                     frames++;
-                    time += Time.unscaledDeltaTime;
+                    elapse += Time.unscaledDeltaTime;
                     return;
                 }
 
@@ -39,7 +39,7 @@ namespace Budget
                 int PadLeft = 8;
 
                 string name = "FPS".PadRight(PadRight);
-                string text = $"{name} {math.round(frames / time).ToString().PadLeft(PadLeft)}";
+                string text = $"{name} {math.round(frames / elapse).ToString().PadLeft(PadLeft)}";
 
                 ref var entries = ref Profile.Entries.Data;
                 for (int i = 0; i < entries.Length; i++)
@@ -55,7 +55,7 @@ namespace Budget
                 m_Text = text;
 
                 frames = 1;
-                time = Time.unscaledDeltaTime;
+                elapse = Time.unscaledDeltaTime;
             };
         }
 
