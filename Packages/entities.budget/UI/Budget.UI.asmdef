@@ -6,7 +6,7 @@
         "Unity.Collections",
         "Unity.TextMeshPro",
         "Unity.Burst",
-        "Budget.Profiling"
+        "Bastard"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
