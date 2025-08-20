@@ -1,5 +1,15 @@
 {
   "dependencies": {
+    "bastard": {
+      "version": "file:../../bastard",
+      "depth": 0,
+      "source": "local",
+      "dependencies": {
+        "com.unity.burst": "1.8.19",
+        "com.unity.collections": "2.5.7",
+        "com.unity.textmeshpro": "3.0.7"
+      }
+    },
     "com.qq.weixin.minigame": {
       "version": "https://gitee.com/wechat-minigame/minigame-tuanjie-transform-sdk.git",
       "depth": 0,
