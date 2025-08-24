@@ -108,10 +108,10 @@ Shader "Budget/Phong"
 
                 half4 color = _BaseColor;
                 #if defined(_BASEMAP_ON)
-                color *= FastSRGBToLinear(SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, input.uv));
+                color *= SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, input.uv);
                 #endif
                 // https://discussions.unity.com/t/get-ambient-color-in-custom-shader/814307/3
-                return FastLinearToSRGB(color * half4(diffuse + specular + half3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w), 1.0));
+                return color * half4(diffuse + specular + half3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w), 1.0);
             }
             ENDHLSL
         }
