@@ -18,6 +18,9 @@ namespace Budget
     [UpdateInGroup(typeof(TransformSystemGroup)), UpdateAfter(typeof(SkinnedAnimationUpdater))]
     public partial struct SkinnedAnimationUploader : ISystem { }
 
-    [UpdateInGroup(typeof(LateSimulationSystemGroup))]
+    [UpdateInGroup(typeof(LateSimulationSystemGroup)), UpdateBefore(typeof(Renderer))]
     public partial struct Batcher : ISystem { }
+
+    [UpdateInGroup(typeof(LateSimulationSystemGroup))]
+    public partial struct Renderer : ISystem { }
 }

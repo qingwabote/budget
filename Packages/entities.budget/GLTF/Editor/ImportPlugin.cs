@@ -23,7 +23,7 @@ namespace Budget.GLTF
 
         public override void OnAfterImportNode(Node node, int nodeIndex, GameObject nodeObject)
         {
-            var renderer = nodeObject.GetComponent<Renderer>();
+            var renderer = nodeObject.GetComponent<UnityEngine.Renderer>();
             if (renderer)
             {
                 if (renderer is UnityEngine.MeshRenderer)

@@ -37,8 +37,6 @@ namespace Budget
                     }
                 }
             }
-
-            Batch.Render();
         }
     }
 }
