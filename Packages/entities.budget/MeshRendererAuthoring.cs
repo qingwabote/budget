@@ -12,7 +12,7 @@ namespace Budget
             var entity = GetEntity(TransformUsageFlags.Dynamic);
             var meshFilter = authoring.GetComponent<MeshFilter>();
             var meshRenderer = authoring.GetComponent<MeshRenderer>();
-            AddComponentObject(entity, new Model
+            AddComponentObject(entity, new MaterialMeshInfo
             {
                 Mesh = meshFilter.sharedMesh,
                 Material = meshRenderer.sharedMaterial

@@ -12,17 +12,12 @@ namespace Budget
         public bool Baking;
     }
 
-    public class SkinInfo
+    public class SkinInfo : IComponentData
     {
         public Skin Proto;
         public bool Baking;
         public int Offset;
         public Skin.Store Store => Baking ? Proto.Persistent : Proto.Transient;
-    }
-
-    public class SkinInfoComponent : IComponentData
-    {
-        public SkinInfo Value;
     }
 
     public struct SkinNode : IBufferElementData
@@ -127,14 +122,10 @@ namespace Budget
                 Index = JointStart,
                 InverseBindMatrices = authoring.Proto.InverseBindMatrices
             });
-            var skinInfo = new SkinInfo
+            AddComponentObject(entity, new SkinInfo
             {
                 Proto = authoring.Proto,
                 Baking = authoring.Baking
-            };
-            AddComponentObject(entity, new SkinInfoComponent
-            {
-                Value = skinInfo
             });
         }
     }

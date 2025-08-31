@@ -1,7 +1,6 @@
 using Bastard;
 using Unity.Entities;
 using Unity.Transforms;
-using UnityEngine;
 
 namespace Budget
 {
@@ -18,20 +17,14 @@ namespace Budget
         {
             using (new Profile.Scope(m_BatchEntry))
             {
-                foreach (var (model, world) in SystemAPI.Query<Model, RefRO<LocalToWorld>>())
+                foreach (var (model, world) in SystemAPI.Query<MaterialMeshInfo, RefRO<LocalToWorld>>().WithOptions(EntityQueryOptions.FilterWriteGroup))
                 {
-                    if (!model.Initialized)
+                    if (Batch.Register(HashCode.Combine(model.Mesh.GetHashCode(), model.Material.GetHashCode()), out Batch batch))
                     {
-                        model.Initialize(ref state);
-                        model.Initialized = true;
-                    }
-
-                    if (Batch.Register(out Batch batch, model))
-                    {
-                        model.MaterialProperty(batch.MaterialProperty);
+                        batch.Material = model.Material;
+                        batch.Mesh = model.Mesh;
                     }
                     batch.InstanceWorlds.Add(world.ValueRO.Value);
-                    model.InstanceProperty(batch.MaterialProperty);
                     batch.InstanceCount++;
                 }
             }

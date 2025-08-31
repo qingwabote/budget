@@ -1,15 +1,24 @@
+using System.Collections.Generic;
 using Bastard;
 using Unity.Entities;
 using Unity.Transforms;
+using UnityEngine;
 
 namespace Budget
 {
     public partial struct SkinnedBatcher : ISystem
     {
+        private static readonly int s_JOINTS = Shader.PropertyToID("_JointMap");
+        private static readonly int s_OFFSET = Shader.PropertyToID("_JointOffset");
+
+        private static TransientPool<List<float>> s_Floats;
+
         private int m_BatchEntry;
 
         public void OnCreate(ref SystemState state)
         {
+            s_Floats = new();
+
             m_BatchEntry = Profile.DefineEntry("SkinnedBatch");
         }
 
@@ -17,20 +26,21 @@ namespace Budget
         {
             using (new Profile.Scope(m_BatchEntry))
             {
-                foreach (var model in SystemAPI.Query<SkinnedModel>())
+                foreach (var (model, root) in SystemAPI.Query<MaterialMeshInfo, RefRO<SkinRootEntity>>())
                 {
-                    if (!model.Initialized)
+                    var Skin = state.EntityManager.GetComponentObject<SkinInfo>(root.ValueRO.Value);
+                    if (Batch.Register(HashCode.Combine(model.Mesh.GetHashCode(), model.Material.GetHashCode(), Skin.Store.Texture.GetHashCode()), out Batch batch))
                     {
-                        model.Initialize(ref state);
-                        model.Initialized = true;
+                        batch.Material = model.Material;
+                        batch.Mesh = model.Mesh;
+                        batch.MaterialProperty.Textures.Add(s_JOINTS, Skin.Store.Texture);
+                        var floats = s_Floats.Get();
+                        floats.Clear();
+                        batch.MaterialProperty.Floats.Add(s_OFFSET, floats);
                     }
-
-                    if (Batch.Register(out Batch batch, model))
-                    {
-                        model.MaterialProperty(batch.MaterialProperty);
-                    }
-                    batch.InstanceWorlds.Add(state.EntityManager.GetComponentData<LocalToWorld>(model.Entity).Value);
-                    model.InstanceProperty(batch.MaterialProperty);
+                    batch.InstanceWorlds.Add(state.EntityManager.GetComponentData<LocalToWorld>(root.ValueRO.Value).Value);
+                    batch.MaterialProperty.Floats.TryGetValue(s_OFFSET, out var offsets);
+                    offsets.Add(Skin.Offset);
                     batch.InstanceCount++;
                 }
             }

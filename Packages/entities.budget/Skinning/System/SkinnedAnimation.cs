@@ -58,9 +58,8 @@ namespace Budget
             //     }
             // }
 
-            foreach (var (infoComponent, joint, anim, clips, entity) in SystemAPI.Query<SkinInfoComponent, RefRW<SkinJoint>, RefRO<AnimationState>, DynamicBuffer<ClipBinging>>().WithEntityAccess())
+            foreach (var (info, joint, anim, clips, entity) in SystemAPI.Query<SkinInfo, RefRW<SkinJoint>, RefRO<AnimationState>, DynamicBuffer<ClipBinging>>().WithEntityAccess())
             {
-                var info = infoComponent.Value;
                 int offset;
                 if (info.Baking)
                 {
@@ -176,9 +175,9 @@ namespace Budget
         {
             using (new Profile.Scope(m_ProfileEntry))
             {
-                foreach (var skin in SystemAPI.Query<SkinInfoComponent>())
+                foreach (var skin in SystemAPI.Query<SkinInfo>())
                 {
-                    skin.Value.Store.Update();
+                    skin.Store.Update();
                 }
             }
         }
