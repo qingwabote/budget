@@ -10,17 +10,13 @@ namespace Budget
         public override void Bake(MeshRendererAuthoring authoring)
         {
             var entity = GetEntity(TransformUsageFlags.Dynamic);
-
             var meshFilter = authoring.GetComponent<MeshFilter>();
-
             var meshRenderer = authoring.GetComponent<MeshRenderer>();
-
-            var model = new Model
+            AddComponentObject(entity, new Model
             {
                 Mesh = meshFilter.sharedMesh,
                 Material = meshRenderer.sharedMaterial
-            };
-            AddComponentObject(entity, new ModelArray { Value = new[] { model } });
+            });
         }
     }
 }

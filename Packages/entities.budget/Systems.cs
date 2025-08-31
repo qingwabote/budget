@@ -21,6 +21,9 @@ namespace Budget
     [UpdateInGroup(typeof(LateSimulationSystemGroup)), UpdateBefore(typeof(Renderer))]
     public partial struct Batcher : ISystem { }
 
+    [UpdateInGroup(typeof(LateSimulationSystemGroup)), UpdateBefore(typeof(Renderer))]
+    public partial struct SkinnedBatcher : ISystem { }
+
     [UpdateInGroup(typeof(LateSimulationSystemGroup))]
     public partial struct Renderer : ISystem { }
 }

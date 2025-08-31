@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Budget
 {
-    public class Model
+    public class Model : IComponentData
     {
         public Mesh Mesh;
         public Material Material;
@@ -17,10 +17,5 @@ namespace Budget
         virtual public void MaterialProperty(MaterialProperty output) { }
 
         virtual public void InstanceProperty(MaterialProperty input) { }
-    }
-
-    public class ModelArray : IComponentData
-    {
-        public Model[] Value;
     }
 }

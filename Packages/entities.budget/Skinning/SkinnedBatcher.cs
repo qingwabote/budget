@@ -1,24 +1,23 @@
 using Bastard;
 using Unity.Entities;
 using Unity.Transforms;
-using UnityEngine;
 
 namespace Budget
 {
-    public partial struct Batcher : ISystem
+    public partial struct SkinnedBatcher : ISystem
     {
         private int m_BatchEntry;
 
         public void OnCreate(ref SystemState state)
         {
-            m_BatchEntry = Profile.DefineEntry("Batch");
+            m_BatchEntry = Profile.DefineEntry("SkinnedBatch");
         }
 
         public void OnUpdate(ref SystemState state)
         {
             using (new Profile.Scope(m_BatchEntry))
             {
-                foreach (var (model, world) in SystemAPI.Query<Model, RefRO<LocalToWorld>>())
+                foreach (var model in SystemAPI.Query<SkinnedModel>())
                 {
                     if (!model.Initialized)
                     {
@@ -30,7 +29,7 @@ namespace Budget
                     {
                         model.MaterialProperty(batch.MaterialProperty);
                     }
-                    batch.InstanceWorlds.Add(world.ValueRO.Value);
+                    batch.InstanceWorlds.Add(state.EntityManager.GetComponentData<LocalToWorld>(model.Entity).Value);
                     model.InstanceProperty(batch.MaterialProperty);
                     batch.InstanceCount++;
                 }
