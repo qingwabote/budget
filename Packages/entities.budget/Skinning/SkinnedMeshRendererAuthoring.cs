@@ -14,7 +14,7 @@ namespace Budget
         public Entity Value;
     }
 
-    [WriteGroup(typeof(MaterialMeshInfo))]
+    [WriteGroup(typeof(MaterialMeshBaking))]
     struct SkinnedMaterialMeshInfo : IComponentData { }
 
     class SkinnedMeshRendererBaker : Baker<SkinnedMeshRendererAuthoring>
@@ -23,7 +23,7 @@ namespace Budget
         {
             var entity = GetEntity(TransformUsageFlags.Dynamic);
             var meshRenderer = authoring.GetComponent<SkinnedMeshRenderer>();
-            AddComponentObject(entity, new MaterialMeshInfo
+            AddComponentObject(entity, new MaterialMeshBaking
             {
                 Mesh = meshRenderer.sharedMesh,
                 Material = authoring.Material

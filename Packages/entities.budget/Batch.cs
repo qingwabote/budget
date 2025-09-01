@@ -28,7 +28,7 @@ namespace Budget
             return true;
         }
 
-        public static void Render()
+        public static void Render(Material[] materials, Mesh[] meshes)
         {
             Profile.Set(s_CountEntry, s_Queue.Count);
 
@@ -46,11 +46,11 @@ namespace Budget
                         s_MPB.SetFloatArray(id, list);
                     }
 
-                    var rp = new RenderParams(batch.Material)
+                    var rp = new RenderParams(materials[batch.Material])
                     {
                         matProps = s_MPB
                     };
-                    Graphics.RenderMeshInstanced(rp, batch.Mesh, 0, batch.InstanceWorlds.AsArray().Reinterpret<Matrix4x4>(), batch.InstanceCount);
+                    Graphics.RenderMeshInstanced(rp, meshes[batch.Mesh], 0, batch.InstanceWorlds.AsArray().Reinterpret<Matrix4x4>(), batch.InstanceCount);
 
                     batch.MaterialProperty.Clear();
                     batch.InstanceWorlds.Clear();
@@ -60,8 +60,8 @@ namespace Budget
             }
         }
 
-        public Mesh Mesh;
-        public Material Material;
+        public int Mesh;
+        public int Material;
         public MaterialProperty MaterialProperty = new();
 
         public NativeList<float4x4> InstanceWorlds = new(Allocator.Persistent);

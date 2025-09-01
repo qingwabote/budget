@@ -1,11 +1,10 @@
 using Unity.Entities;
-using UnityEngine;
 
 namespace Budget
 {
-    public class MaterialMeshInfo : IComponentData
+    public struct MaterialMeshInfo : IComponentData
     {
-        public Mesh Mesh;
-        public Material Material;
+        public int Material;
+        public int Mesh;
     }
 }

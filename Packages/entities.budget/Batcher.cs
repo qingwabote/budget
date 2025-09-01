@@ -17,12 +17,12 @@ namespace Budget
         {
             using (new Profile.Scope(m_BatchEntry))
             {
-                foreach (var (model, world) in SystemAPI.Query<MaterialMeshInfo, RefRO<LocalToWorld>>().WithOptions(EntityQueryOptions.FilterWriteGroup))
+                foreach (var (mm, world) in SystemAPI.Query<MaterialMeshInfo, RefRO<LocalToWorld>>().WithOptions(EntityQueryOptions.FilterWriteGroup))
                 {
-                    if (Batch.Register(HashCode.Combine(model.Mesh.GetHashCode(), model.Material.GetHashCode()), out Batch batch))
+                    if (Batch.Register(HashCode.Combine(mm.Mesh, mm.Material), out Batch batch))
                     {
-                        batch.Material = model.Material;
-                        batch.Mesh = model.Mesh;
+                        batch.Material = mm.Material;
+                        batch.Mesh = mm.Mesh;
                     }
                     batch.InstanceWorlds.Add(world.ValueRO.Value);
                     batch.InstanceCount++;

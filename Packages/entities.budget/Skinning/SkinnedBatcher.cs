@@ -26,13 +26,13 @@ namespace Budget
         {
             using (new Profile.Scope(m_BatchEntry))
             {
-                foreach (var (model, root) in SystemAPI.Query<MaterialMeshInfo, RefRO<SkinRootEntity>>())
+                foreach (var (mm, root) in SystemAPI.Query<MaterialMeshInfo, RefRO<SkinRootEntity>>())
                 {
                     var Skin = state.EntityManager.GetComponentObject<SkinInfo>(root.ValueRO.Value);
-                    if (Batch.Register(HashCode.Combine(model.Mesh.GetHashCode(), model.Material.GetHashCode(), Skin.Store.Texture.GetHashCode()), out Batch batch))
+                    if (Batch.Register(HashCode.Combine(mm.Mesh, mm.Material, Skin.Store.Texture.GetHashCode()), out Batch batch))
                     {
-                        batch.Material = model.Material;
-                        batch.Mesh = model.Mesh;
+                        batch.Material = mm.Material;
+                        batch.Mesh = mm.Mesh;
                         batch.MaterialProperty.Textures.Add(s_JOINTS, Skin.Store.Texture);
                         var floats = s_Floats.Get();
                         floats.Clear();
