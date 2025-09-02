@@ -8,6 +8,11 @@ namespace Budget
     {
         private static List<MaterialMeshArray> s_MaterialMeshArrays = new(2);
 
+        public void OnCreate(ref SystemState state)
+        {
+            state.RequireForUpdate<MaterialMeshArray>();
+        }
+
         public void OnUpdate(ref SystemState state)
         {
             s_MaterialMeshArrays.Clear();
