@@ -255,9 +255,9 @@
       "url": "https://packages.unity.cn"
     },
     "graphix": {
-      "version": "file:graphix",
+      "version": "file:../../graphix",
       "depth": 0,
-      "source": "embedded",
+      "source": "local",
       "dependencies": {}
     },
     "org.khronos.unitygltf": {
