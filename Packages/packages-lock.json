@@ -254,8 +254,8 @@
       },
       "url": "https://packages.unity.cn"
     },
-    "entities.budget": {
-      "version": "file:entities.budget",
+    "graphix": {
+      "version": "file:graphix",
       "depth": 0,
       "source": "embedded",
       "dependencies": {}

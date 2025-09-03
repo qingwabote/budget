@@ -63,7 +63,7 @@ public partial struct SpawnSystem : ISystem
             {
                 var entity = state.EntityManager.Instantiate(spawn.Prefab);
                 SystemAPI.GetComponentRW<LocalTransform>(entity).ValueRW.Position = new float3(m_Random.NextFloat(-3, 3), 0, m_Random.NextFloat(-6, 6));
-                SystemAPI.GetComponentRW<Budget.AnimationState>(entity).ValueRW.ClipIndex = m_Random.NextInt(0, 2);
+                // SystemAPI.GetComponentRW<Graphix.AnimationState>(entity).ValueRW.ClipIndex = m_Random.NextInt(0, 2);
             }
             state.EntityManager.RemoveComponent<Spawn.Initializer>(spawn_entity);
         }
