@@ -1,9 +1,9 @@
 {
   "dependencies": {
     "bastard": {
-      "version": "file:../../bastard",
+      "version": "file:bastard",
       "depth": 0,
-      "source": "local",
+      "source": "embedded",
       "dependencies": {
         "com.unity.burst": "1.8.19",
         "com.unity.collections": "2.5.7",
@@ -255,9 +255,9 @@
       "url": "https://packages.unity.cn"
     },
     "graphix": {
-      "version": "file:../../graphix",
+      "version": "file:graphix",
       "depth": 0,
-      "source": "local",
+      "source": "embedded",
       "dependencies": {}
     },
     "org.khronos.unitygltf": {
