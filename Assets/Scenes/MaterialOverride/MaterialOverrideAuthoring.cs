@@ -66,9 +66,15 @@ public partial struct MaterialOverrideSystem : ISystem
             {
                 var entity = state.EntityManager.Instantiate(spawn.Prefab);
                 state.EntityManager.AddComponentData(entity, new MaterialColor { Value = new float4(m_Random.NextFloat(0, 1), m_Random.NextFloat(0, 1), m_Random.NextFloat(0, 1), 1.0f) });
-                SystemAPI.GetComponentRW<LocalTransform>(entity).ValueRW.Position = new float3(m_Random.NextFloat(-3, 3), m_Random.NextFloat(-3, 3), 0);
+                SystemAPI.GetComponentRW<LocalTransform>(entity).ValueRW.Position = new float3(m_Random.NextFloat(-3, 3), m_Random.NextFloat(-3, 3), m_Random.NextFloat(-3, 3));
             }
             state.EntityManager.RemoveComponent<MaterialOverride.Initializer>(MaterialOverrideEntity);
+        }
+        else
+        {
+            var sysHandle = World.DefaultGameObjectInjectionWorld.GetExistingSystem<LocalToWorldSystem>();
+            ref var sysState = ref World.DefaultGameObjectInjectionWorld.Unmanaged.ResolveSystemStateRef(sysHandle);
+            sysState.Enabled = false;
         }
     }
 }
