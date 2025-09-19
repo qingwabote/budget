@@ -132,6 +132,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Clips:
-  - {fileID: 5469291435420258224, guid: 45589663693bfea4c9803381f13d60b5, type: 3}
-  - {fileID: -6981695330509794753, guid: 45589663693bfea4c9803381f13d60b5, type: 3}
+  - {fileID: 2647470619657886745, guid: 45589663693bfea4c9803381f13d60b5, type: 3}
+  - {fileID: 6472074315156961991, guid: 45589663693bfea4c9803381f13d60b5, type: 3}
   ClipIndex: 0
