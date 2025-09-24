@@ -1,8 +1,6 @@
-using System.Collections;
-using System.Collections.Generic;
-using Graphix;
 using Unity.Entities;
 using Unity.Mathematics;
+using Unity.Rendering;
 using Unity.Transforms;
 using UnityEngine;
 
@@ -36,12 +34,6 @@ public class MaterialOverrideAuthoring : MonoBehaviour
     }
 }
 
-[MaterialProperty("_BaseColor")]
-struct MaterialColor : IComponentData
-{
-    public float4 Value;
-}
-
 public partial struct MaterialOverrideSystem : ISystem
 {
     private Unity.Mathematics.Random m_Random;
@@ -65,7 +57,7 @@ public partial struct MaterialOverrideSystem : ISystem
             for (int i = 0; i < spawn.Num; i++)
             {
                 var entity = state.EntityManager.Instantiate(spawn.Prefab);
-                state.EntityManager.AddComponentData(entity, new MaterialColor { Value = new float4(m_Random.NextFloat(0, 1), m_Random.NextFloat(0, 1), m_Random.NextFloat(0, 1), 1.0f) });
+                state.EntityManager.AddComponentData(entity, new URPMaterialPropertyBaseColor { Value = new float4(m_Random.NextFloat(0, 1), m_Random.NextFloat(0, 1), m_Random.NextFloat(0, 1), 1.0f) });
                 SystemAPI.GetComponentRW<LocalTransform>(entity).ValueRW.Position = new float3(m_Random.NextFloat(-3, 3), m_Random.NextFloat(-3, 3), m_Random.NextFloat(-3, 3));
             }
             state.EntityManager.RemoveComponent<MaterialOverride.Initializer>(MaterialOverrideEntity);

@@ -260,6 +260,12 @@
       "source": "embedded",
       "dependencies": {}
     },
+    "graphix.gltf": {
+      "version": "file:gltf",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
+    },
     "org.khronos.unitygltf": {
       "version": "https://github.com/KhronosGroup/UnityGLTF.git",
       "depth": 0,

@@ -15,9 +15,6 @@ EditorBuildSettings:
     path: Assets/Scenes/SpawnTraditional.unity
     guid: dd4f9dada0801684f933d1919cc4a98c
   - enabled: 0
-    path: Assets/Scenes/SkinningSpawn.unity
-    guid: 8ef5032fb6ce3c144a640cfb8a0d5bcf
-  - enabled: 0
     path: Assets/Scenes/MaterialOverride.unity
     guid: 201269c5158b8cd4c8295682f95a8a0b
   m_configObjects: {}
