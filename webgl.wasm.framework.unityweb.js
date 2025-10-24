@@ -1808,7 +1808,10 @@ var unityFramework = (() => {
       return lengthBytesUTF8(browser)
     }
     function _JS_SystemInfo_GetPreferredDevicePixelRatio() {
-      return Module.matchWebGLToCanvasSize == false ? 1 : Module.devicePixelRatio || window.devicePixelRatio || 1
+      //hack
+      // return Module.matchWebGLToCanvasSize == false ? 1 : Module.devicePixelRatio || window.devicePixelRatio || 1
+      return window.devicePixelRatio * 0.8
+      //
     }
     function _JS_SystemInfo_GetScreenSize(outWidth, outHeight) {
       HEAPF64[outWidth >> 3] = UnityLoader.SystemInfo.width;
@@ -11023,8 +11026,12 @@ var unityFramework = (() => {
           HEAP32[idx + 6] = t.pageY;
           HEAP32[idx + 7] = t.isChanged;
           HEAP32[idx + 8] = t.onTarget;
-          HEAP32[idx + 9] = (t.clientX - targetRect.left) * window._ScaleRate * (canvas.width / window.innerWidth / devicePixelRatio);
-          HEAP32[idx + 10] = (t.clientY - targetRect.top) * window._ScaleRate * (canvas.height / window.innerHeight / devicePixelRatio);
+          // hack
+          // HEAP32[idx + 9] = (t.clientX - targetRect.left) * window._ScaleRate * (canvas.width / window.innerWidth / devicePixelRatio);
+          // HEAP32[idx + 10] = (t.clientY - targetRect.top) * window._ScaleRate * (canvas.height / window.innerHeight / devicePixelRatio);
+          HEAP32[idx + 9] = (t.clientX - targetRect.left) * window._ScaleRate * (canvas.width / window.innerWidth / (devicePixelRatio * 0.8));
+          HEAP32[idx + 10] = (t.clientY - targetRect.top) * window._ScaleRate * (canvas.height / window.innerHeight / (devicePixelRatio * 0.8));
+          //
           idx += 13;
           if (++numTouches > 31) {
             break
