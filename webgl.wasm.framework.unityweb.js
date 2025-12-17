@@ -18665,6 +18665,35 @@ var unityFramework = (() => {
         if (ABORT)
           return;
         initRuntime();
+
+        // addressables hack
+        const fs = wx.getFileSystemManager();
+        const RW = FS.getMode(true, true);
+        let parent = '';
+        function dir(path) {
+          FS.mkdir(path);
+          parent = path;
+        }
+        function file(name) {
+          const full = `${parent}/${name}`;
+          const data = new Uint8Array(fs.readFileSync(full));
+          const node = FS.create(full.replace('.txt', ''), RW);
+          var stream = FS.open(node, 577);
+          FS.write(stream, data, 0, data.length);
+          FS.close(stream);
+        }
+        dir('StreamingAssets');
+        dir('StreamingAssets/aa');
+        file('settings.json');
+        file('catalog.json');
+        dir('StreamingAssets/aa/WebGL')
+        file('localization-assets-shared_assets_all.bundle.txt');
+        file('localization-locales_assets_all.bundle.txt');
+        file('localization-string-tables-english(en)_assets_all.bundle.txt');
+        file('localization-string-tables-spanish(es)_assets_all.bundle.txt');
+        dir('StreamingAssets/aa/AddressablesLink')
+        file('link.xml');
+
         preMain();
         readyPromiseResolve(Module);
         if (Module["onRuntimeInitialized"])
