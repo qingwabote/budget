@@ -18682,7 +18682,9 @@ var unityFramework = (() => {
           FS.write(stream, data, 0, data.length);
           FS.close(stream);
         }
-        dir('StreamingAssets');
+        try {
+          dir('StreamingAssets');
+        } catch (error) { }
         dir('StreamingAssets/aa');
         file('settings.json');
         file('catalog.json');
