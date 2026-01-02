@@ -18676,7 +18676,7 @@ var unityFramework = (() => {
         }
         function file(name) {
           const full = `${parent}/${name}`;
-          const data = new Uint8Array(fs.readFileSync(full));
+          const data = new Uint8Array(fs.readFileSync((StarkSDK ? 'TT' : '') + full));
           const node = FS.create(full.replace('.txt', ''), RW);
           var stream = FS.open(node, 577);
           FS.write(stream, data, 0, data.length);
@@ -18692,7 +18692,7 @@ var unityFramework = (() => {
         file('localization-assets-shared_assets_all.bundle.txt');
         file('localization-locales_assets_all.bundle.txt');
         file('localization-string-tables-english(en)_assets_all.bundle.txt');
-        file('localization-string-tables-spanish(es)_assets_all.bundle.txt');
+        file('localization-string-tables-chinese(simplified)(zh-hans)_assets_all.bundle.txt');
         dir('StreamingAssets/aa/AddressablesLink')
         file('link.xml');
 

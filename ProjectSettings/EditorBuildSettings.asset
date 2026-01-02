@@ -12,9 +12,6 @@ EditorBuildSettings:
     path: Assets/Scenes/Spawn.unity
     guid: 46030ae8d764da84ba770dbdcc9aa17c
   - enabled: 0
-    path: Assets/Scenes/SpawnTraditional.unity
-    guid: dd4f9dada0801684f933d1919cc4a98c
-  - enabled: 0
     path: Assets/Scenes/MaterialOverride.unity
     guid: 201269c5158b8cd4c8295682f95a8a0b
   m_configObjects: {}
